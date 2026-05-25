@@ -738,13 +738,90 @@ _bgDiv.style.cssText = `
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: url('assets/background.png') center center / cover no-repeat;
   z-index: -1;
   pointer-events: none;
 `
 document.body.style.margin = '0'
 document.body.style.overflow = 'hidden'
 document.body.appendChild(_bgDiv)
+
+// -------------------------------------------------
+// BG TUNER — adjust position & size of background image
+// Values: posX%, posY%, size%
+// -------------------------------------------------
+
+let _bgPosX = 50   // horizontal focus (0=left, 100=right)
+let _bgPosY = 50   // vertical focus  (0=top,  100=bottom)
+let _bgSize = 100  // zoom/size %     (100=cover, higher=zoom in)
+
+function _applyBg() {
+  _bgDiv.style.backgroundImage = `url('assets/background.png')`
+  _bgDiv.style.backgroundRepeat = 'no-repeat'
+  _bgDiv.style.backgroundSize = `${_bgSize}%`
+  _bgDiv.style.backgroundPosition = `${_bgPosX}% ${_bgPosY}%`
+}
+_applyBg()
+
+// Inject tuner UI
+const _bgTuner = document.createElement('div')
+_bgTuner.id = 'bg-tuner'
+_bgTuner.style.cssText = `
+  position: fixed; bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 20px; align-items: center;
+  background: rgba(0,0,0,0.7); color: #fff;
+  padding: 8px 18px; border-radius: 10px;
+  font-family: Arial; font-size: 13px; z-index: 9999;
+`
+
+function _makeControl(label, getVal, setVal, step, onchange) {
+  const wrap = document.createElement('div')
+  wrap.style.cssText = 'display:flex;align-items:center;gap:6px'
+  const lbl = document.createElement('span')
+  lbl.textContent = label
+  lbl.style.color = '#aaa'
+  const btn1 = document.createElement('button')
+  btn1.textContent = '-'
+  btn1.style.cssText = 'width:22px;height:22px;cursor:pointer;font-size:13px;border-radius:4px'
+  const inp = document.createElement('input')
+  inp.type = 'number'
+  inp.value = getVal()
+  inp.step = step
+  inp.style.cssText = 'width:58px;text-align:center;font-size:13px;border-radius:4px;border:1px solid #555;background:#222;color:#fff;padding:2px 4px'
+  const btn2 = document.createElement('button')
+  btn2.textContent = '+'
+  btn2.style.cssText = 'width:22px;height:22px;cursor:pointer;font-size:13px;border-radius:4px'
+
+  btn1.addEventListener('click', () => {
+    setVal(parseFloat((getVal() - step).toFixed(2)))
+    inp.value = getVal()
+    onchange()
+  })
+  btn2.addEventListener('click', () => {
+    setVal(parseFloat((getVal() + step).toFixed(2)))
+    inp.value = getVal()
+    onchange()
+  })
+  inp.addEventListener('change', () => {
+    setVal(parseFloat(inp.value) || 0)
+    onchange()
+  })
+
+  wrap.append(lbl, btn1, inp, btn2)
+  return wrap
+}
+
+_bgTuner.appendChild(_makeControl('BG X%',  () => _bgPosX, v => _bgPosX = v, 1, _applyBg))
+const sep1 = document.createElement('span'); sep1.textContent = '|'; sep1.style.color='#555'; _bgTuner.appendChild(sep1)
+_bgTuner.appendChild(_makeControl('BG Y%',  () => _bgPosY, v => _bgPosY = v, 1, _applyBg))
+const sep2 = document.createElement('span'); sep2.textContent = '|'; sep2.style.color='#555'; _bgTuner.appendChild(sep2)
+_bgTuner.appendChild(_makeControl('BG Size%', () => _bgSize, v => _bgSize = v, 5, _applyBg))
+
+// Print current values to console whenever they change
+const _origApplyBg = _applyBg
+window._logBgValues = () => console.log(`BG values → posX: ${_bgPosX}, posY: ${_bgPosY}, size: ${_bgSize}`)
+
+document.body.appendChild(_bgTuner)
 
 console.log("CREATING GAME")
 
