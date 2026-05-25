@@ -148,13 +148,6 @@ class MainScene extends Phaser.Scene {
     // GROUND
     // =================================================
 
-    // Fill below ground with a solid color (grass/earth tone)
-    this.add.rectangle(0, this.groundY, WORLD_WIDTH, this.scale.height - this.groundY + 10, 0x8BC34A)
-      .setOrigin(0, 0)
-      .setDepth(-1)
-
-    this.add.rectangle(WORLD_WIDTH / 2, this.groundY, WORLD_WIDTH, 2, 0xcccccc)
-
     this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0)
 
 
