@@ -29,7 +29,7 @@ class MainScene extends Phaser.Scene {
   preload() {}
 
   create() {
-
+   console.log("CREATE RUNNING")
     // =================================================
     // BACKGROUND
     // =================================================
@@ -1403,3 +1403,4 @@ export const gameConfig = {
 
   scene: MainScene,
 }
+new Phaser.Game(gameConfig)
