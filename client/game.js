@@ -239,7 +239,7 @@ this.cameras.main.setBounds(
       )
 
     player.animTime +=
-      player.walkCycle * 0.75
+      player.walkCycle * 0.18
 
     const t = player.animTime
 
@@ -328,7 +328,7 @@ this.cameras.main.setBounds(
   // =========================================
 
   const walkPhase =
-    (t * 1.35) % 1
+    (t * 0.85) % 1
 
   const leftSupport =
     walkPhase < 0.5
