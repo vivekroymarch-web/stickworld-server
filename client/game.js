@@ -135,7 +135,7 @@ class MainScene extends Phaser.Scene {
 
   create() {
     console.log("CREATE RUNNING")
-    this.groundY = this.scale.height - 120
+    this.groundY = this.scale.height - 91
     this.game.canvas.style.imageRendering = 'pixelated'
 
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, this.scale.height)
@@ -150,20 +150,20 @@ class MainScene extends Phaser.Scene {
     // GROUND
     // =================================================
 
-    this.groundLine = this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0)
+    this.groundLine = this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0).setAlpha(0)
 
     // =================================================
     // UFO — ambient background object
     // =================================================
 
-    this.ufo = this.add.image(400, 180, 'ufo')
-      .setScale(0.12)
+    this.ufo = this.add.image(400, 440, 'ufo')
+      .setScale(0.71)
       .setAlpha(0.82)
       .setDepth(1)
       .setScrollFactor(0.15)
 
-    this.ufoScale  = 0.12   // tunable
-    this.ufoHeight = 160    // mean Y position on screen (tunable)
+    this.ufoScale  = 0.71
+    this.ufoHeight = 440
     this.ufoTime   = 0
 
 
@@ -203,16 +203,18 @@ class MainScene extends Phaser.Scene {
     // =================================================
 
     this.keys = this.input.keyboard.addKeys({
-      left:           Phaser.Input.Keyboard.KeyCodes.A,
-      right:          Phaser.Input.Keyboard.KeyCodes.D,
-      jump:           Phaser.Input.Keyboard.KeyCodes.W,
-      laugh:          Phaser.Input.Keyboard.KeyCodes.E,
-      point:          Phaser.Input.Keyboard.KeyCodes.R,
-      cry:            Phaser.Input.Keyboard.KeyCodes.F,
-      run:            Phaser.Input.Keyboard.KeyCodes.SHIFT,
-      heavyLaugh:     Phaser.Input.Keyboard.KeyCodes.Z,
-      angry:          Phaser.Input.Keyboard.KeyCodes.X,
-      moderatelyAngry: Phaser.Input.Keyboard.KeyCodes.C,
+      left:            Phaser.Input.Keyboard.KeyCodes.A,
+      right:           Phaser.Input.Keyboard.KeyCodes.D,
+      jump:            Phaser.Input.Keyboard.KeyCodes.W,
+      run:             Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      point:           Phaser.Input.Keyboard.KeyCodes.R,
+      laugh:           Phaser.Input.Keyboard.KeyCodes.ONE,
+      heavyLaugh:      Phaser.Input.Keyboard.KeyCodes.TWO,
+      cry:             Phaser.Input.Keyboard.KeyCodes.THREE,
+      angry:           Phaser.Input.Keyboard.KeyCodes.FOUR,
+      moderatelyAngry: Phaser.Input.Keyboard.KeyCodes.FIVE,
+      faceHeart:       Phaser.Input.Keyboard.KeyCodes.SIX,
+      faceScream:      Phaser.Input.Keyboard.KeyCodes.SEVEN,
     })
 
     this.nameInput = document.getElementById('player-name')
@@ -226,9 +228,11 @@ class MainScene extends Phaser.Scene {
     // SETTINGS PANEL — collapsible, behind ⚙ button
     // =================================================
 
-    this.emoteNudge = 35
-    this.emoteScale = 1.65
-    this.groundOffset = 120
+    this.emoteNudge   = 35
+    this.emoteScale   = 1.65
+    this.groundOffset = 91
+    this.ufoScale     = 0.71
+    this.ufoHeight    = 440
 
     // ---- Settings button ----
     const settingsBtn = document.createElement('button')
@@ -321,7 +325,6 @@ class MainScene extends Phaser.Scene {
       },
       1, () => {}
     ))
-
     panel.appendChild(sep())
 
     // ---- Emote Offset ----
@@ -411,7 +414,7 @@ class MainScene extends Phaser.Scene {
 
     this.controlsText = this.add.text(
       20, 50,
-      'A/D move · W jump · E laugh · Z heavy laugh · F cry · X angry · C moderate angry · R point',
+      'A/D move · W jump · SHIFT run · R point · 1 laugh · 2 heavy laugh · 3 cry · 4 angry · 5 mod.angry · 6 😍 · 7 😱',
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
@@ -429,7 +432,14 @@ class MainScene extends Phaser.Scene {
       fontSize: '28px'
     }).setOrigin(0.5, 0.5).setVisible(false).setDepth(20)
 
-    this.emojiAngle = 0  // current angle on the circle (radians)
+    this.emojiAngle = 0
+
+    // Face emoji — shown on character's head when 6 or 7 is held
+    this.faceEmoji = this.add.text(0, 0, '', {
+      fontSize: '28px'
+    }).setOrigin(0.5, 0.5).setVisible(false).setDepth(20)
+
+    this.activeFaceEmoji = null  // '😍' | '😱' | null
 
     // =================================================
     // NETWORK
@@ -650,7 +660,7 @@ class MainScene extends Phaser.Scene {
     // =================================================
 
     if (this.keys.point.isDown) {
-      this.player.pose = 'idle'  // character stays idle while pointing
+      this.player.pose = 'idle'
     } else if (this.keys.heavyLaugh.isDown) {
       this.player.pose = 'heavy_laugh'
     } else if (this.keys.laugh.isDown) {
@@ -667,6 +677,29 @@ class MainScene extends Phaser.Scene {
       this.player.pose = 'walk'
     } else {
       this.player.pose = 'idle'
+    }
+
+    // =================================================
+    // FACE EMOJI
+    // =================================================
+
+    if (this.keys.faceHeart.isDown) {
+      this.activeFaceEmoji = '😍'
+    } else if (this.keys.faceScream.isDown) {
+      this.activeFaceEmoji = '😱'
+    } else {
+      this.activeFaceEmoji = null
+    }
+
+    if (this.activeFaceEmoji) {
+      // Position on character head — slightly above nameText
+      const headY = this.player.y - 148
+      this.faceEmoji
+        .setText(this.activeFaceEmoji)
+        .setPosition(this.player.x, headY)
+        .setVisible(true)
+    } else {
+      this.faceEmoji.setVisible(false)
     }
 
     // Edge-scroll: move camera so player stays within [margin, screenW-margin]
@@ -888,7 +921,7 @@ document.body.appendChild(_bgDiv)
 // -------------------------------------------------
 
 window._bgPosX = 50
-window._bgPosY = 50
+window._bgPosY = 100
 window._bgSize = 100
 
 window._applyBg = function() {
