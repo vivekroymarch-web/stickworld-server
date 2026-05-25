@@ -138,7 +138,7 @@ class MainScene extends Phaser.Scene {
     this.load.spritesheet(
       'mushroom-sheet',
       'assets/stickman/mushroom.png',
-      { frameWidth: 80, frameHeight: 64 }
+      { frameWidth: 32, frameHeight: 64 }
     )
   }
 
