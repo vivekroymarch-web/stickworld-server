@@ -641,47 +641,46 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
     }
 
     // Draw points
-    this.mushroomPath.forEach((p, index) => {
-      if (index === 0) {
-  // START POINT = GREEN
-  this.pathGraphics.fillStyle(0x00ff00, 1)
-}
-else if (index === this.mushroomPath.length - 1) {
-  // END POINT = RED
-  this.pathGraphics.fillStyle(0xff0000, 1)
-}
-else {
-  // NORMAL POINT = YELLOW
-  this.pathGraphics.fillStyle(0xffcc00, 1)
-}
 
-this.pathGraphics.fillCircle(p.x, p.y, 8)
+this.mushroomPath.forEach((p, index) => {
 
-      this.pathGraphics.fillStyle(0x000000, 1)
-      this.pathGraphics.fillCircle(p.x, p.y, 3)
+  if (index === 0) {
+    this.pathGraphics.fillStyle(0x00ff00, 1)
+  }
+  else if (index === this.mushroomPath.length - 1) {
+    this.pathGraphics.fillStyle(0xff0000, 1)
+  }
+  else {
+    this.pathGraphics.fillStyle(0xffcc00, 1)
+  }
 
-      const handle = this.add.circle(
-        p.x,
-        p.y,
-        18,
-        0xffffff,
-        0.001
-      )
-      .setDepth(1000)
-      .setInteractive({ draggable: true })
+  this.pathGraphics.fillCircle(p.x, p.y, 8)
 
-      handle.on('drag', (pointer, dragX, dragY) => {
-        p.x = dragX
-        p.y = dragY
+  this.pathGraphics.fillStyle(0x000000, 1)
+  this.pathGraphics.fillCircle(p.x, p.y, 3)
 
-        this.refreshPathEditor()
-      })
+  const handle = this.add.circle(
+    p.x,
+    p.y,
+    18,
+    0xffffff,
+    0.001
+  )
+  .setDepth(1000)
+  .setInteractive({ draggable: true })
 
-      this.input.setDraggable(handle)
+  handle.on('drag', (pointer, dragX, dragY) => {
 
-      this.pathHandles.push(handle)
-    })
+    p.x = dragX
+    p.y = dragY
 
+    this.refreshPathEditor()
+  })
+
+  this.input.setDraggable(handle)
+
+  this.pathHandles.push(handle)
+})
     this.pathText.setText(
       'mushroomPath = ' +
       JSON.stringify(this.mushroomPath, null, 2)
