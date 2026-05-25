@@ -1009,11 +1009,13 @@ this.pathGraphics.fillCircle(p.x, p.y, 8)
 
 if (this.mushroomPath.length > 1) {
 
-  const target =
-    this.mushroomPath[
-      (this.mushroomPathIndex + 1) %
-      this.mushroomPath.length
-    ]
+  const nextIndex = this.mushroomPathIndex + 1
+
+if (nextIndex >= this.mushroomPath.length) {
+  return
+}
+
+const target = this.mushroomPath[nextIndex]
 
   const dx = target.x - this.mushroom.x
   const dy = target.y - this.mushroom.y
@@ -1022,9 +1024,7 @@ if (this.mushroomPath.length > 1) {
 
   if (dist < 8) {
 
-    this.mushroomPathIndex =
-      (this.mushroomPathIndex + 1) %
-      this.mushroomPath.length
+    this.mushroomPathIndex++
 
   } else {
 
