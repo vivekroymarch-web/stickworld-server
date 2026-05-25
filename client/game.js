@@ -181,7 +181,21 @@ class MainScene extends Phaser.Scene {
 
     this.pathEditorEnabled = false
 
-    this.mushroomPath = []
+    this.mushroomPath = [
+  { x: 1977, y: 907.5 },
+  { x: 1938, y: 871.5 },
+  { x: 1909, y: 849.5 },
+  { x: 1872, y: 800.5 },
+  { x: 1540, y: 799.5 },
+  { x: 1980, y: 795.5 },
+  { x: 2214, y: 791.5 },
+  { x: 2427, y: 788.5 },
+  { x: 2718, y: 787.5 },
+  { x: 2934, y: 786.5 },
+  { x: 3153, y: 782.5 },
+  { x: 3368, y: 781.5 },
+  { x: 3459, y: 780.5 }
+]
 
     this.pathGraphics = this.add.graphics().setDepth(999)
 
