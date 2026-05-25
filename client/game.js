@@ -836,8 +836,8 @@ this.pathGraphics.fillCircle(p.x, p.y, 8)
 
     const dt       = delta / 16.666
     const running  = this.keys.run.isDown
-    const accel    = running ? 0.40 : 0.24
-    const maxSpeed = running ? 4.2  : 2.0
+    const accel    = running ? 0.16 : 0.08
+const maxSpeed = running ? 1.4  : 1.2
     const friction = 0.82
 
     if (this.keys.left.isDown) {
