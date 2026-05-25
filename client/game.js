@@ -131,6 +131,15 @@ class MainScene extends Phaser.Scene {
       'assets/stickman/stickman_cry_sheet.png',
       { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
     )
+
+    // =================================================
+    // MUSHROOM CHARACTER — 640×64 sheet, 10 frames of 64×64
+    // =================================================
+    this.load.spritesheet(
+      'mushroom-sheet',
+      'assets/stickman/mushroom.png',
+      { frameWidth: 64, frameHeight: 64 }
+    )
   }
 
   create() {
@@ -233,8 +242,8 @@ class MainScene extends Phaser.Scene {
     this.groundOffset    = 91
     this.ufoScale        = 0.71
     this.ufoHeight       = 440
-    this.faceEmojiOffset = 148   // px above player.y — tune to align emoji with face
-    this.jumpVelocity    = 7     // upward force on normal jump (run jump = this * 1.286)
+    this.faceEmojiOffset = 98
+    this.jumpVelocity    = 5
 
     // ---- Settings button ----
     const settingsBtn = document.createElement('button')
@@ -397,26 +406,6 @@ class MainScene extends Phaser.Scene {
       5, () => {}
     ))
 
-    panel.appendChild(sep())
-
-    // ---- Face Emoji Offset ----
-    panel.appendChild(makeRow(
-      'Face Emoji Y', 'px above player feet — raise/lower 😍 😱 to hit the face',
-      () => this.faceEmojiOffset,
-      v => { this.faceEmojiOffset = v },
-      1, () => {}
-    ))
-
-    panel.appendChild(sep())
-
-    // ---- Jump Velocity ----
-    panel.appendChild(makeRow(
-      'Jump Height', 'upward force on normal jump (run-jump = ×1.286)',
-      () => this.jumpVelocity,
-      v => { this.jumpVelocity = v },
-      0.5, () => {}
-    ))
-
     // =================================================
     // UI
     // =================================================
@@ -457,9 +446,10 @@ class MainScene extends Phaser.Scene {
     this.emojiAngle = 0
 
     // Face emoji — shown on character's head when 6 or 7 is held
+    // origin(0.5, 0) anchors the top of the glyph at the Y position — prevents canvas-top clipping
     this.faceEmoji = this.add.text(0, 0, '', {
-      fontSize: '28px'
-    }).setOrigin(0.5, 0.5).setVisible(false).setDepth(20)
+      fontSize: '32px'
+    }).setOrigin(0.5, 0).setVisible(false).setDepth(20)
 
     this.activeFaceEmoji = null  // '😍' | '😱' | null
 
@@ -502,6 +492,8 @@ class MainScene extends Phaser.Scene {
       { key: 'stickman-cry',              sheet: 'stickman-cry-sheet',              frames: 16, frameRate: 9  },
       { key: 'stickman-angry',            sheet: 'stickman-angry-sheet',            frames: 16, frameRate: 8  },
       { key: 'stickman-moderately_angry', sheet: 'stickman-moderately-angry-sheet', frames: 16, frameRate: 8  },
+      // Mushroom character — 10 frames across a 640×64 sheet (64×64 per frame)
+      { key: 'mushroom-walk',             sheet: 'mushroom-sheet',                  frames: 10, frameRate: 10 },
     ]
 
     specs.forEach(spec => {
