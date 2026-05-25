@@ -174,6 +174,99 @@ class MainScene extends Phaser.Scene {
     this.ufoScale  = 0.71
     this.ufoHeight = 440
     this.ufoTime   = 0
+    // =================================================
+// MUSHROOM PATH EDITOR
+// =================================================
+
+this.pathEditorEnabled = false
+
+this.mushroomPath = [
+  { x: 400, y: this.groundY - 40 },
+  { x: 700, y: this.groundY - 120 },
+  { x: 1100, y: this.groundY - 40 },
+]
+
+this.pathGraphics = this.add.graphics().setDepth(999)
+
+this.pathHandles = []
+
+this.pathText = this.add.text(20, 90, '', {
+  fontFamily: 'monospace',
+  fontSize: '12px',
+  color: '#00ff88',
+  backgroundColor: '#000000aa',
+  padding: { x: 8, y: 6 }
+})
+.setScrollFactor(0)
+.setDepth(999)
+
+this.pathHelp = this.add.text(
+  20,
+  180,
+  'P = toggle path editor\nLEFT CLICK = add point\nDRAG = move point\nHOLD X + CLICK = delete point',
+  {
+    fontFamily: 'Arial',
+    fontSize: '13px',
+    color: '#ffffff',
+    backgroundColor: '#000000aa',
+    padding: { x: 8, y: 6 }
+  }
+)
+.setScrollFactor(0)
+.setDepth(999)
+.setVisible(false)
+
+this.pathToggleKey = this.input.keyboard.addKey(
+  Phaser.Input.Keyboard.KeyCodes.P
+)
+
+this.pathDeleteKey = this.input.keyboard.addKey(
+  Phaser.Input.Keyboard.KeyCodes.X
+)
+
+this.input.mouse.disableContextMenu()
+
+this.refreshPathEditor()
+
+this.input.on('pointerdown', (pointer) => {
+
+  if (!this.pathEditorEnabled) return
+
+  // X KEY HELD = DELETE
+  if (this.pathDeleteKey.isDown) {
+
+    for (let i = this.pathHandles.length - 1; i >= 0; i--) {
+
+      const h = this.pathHandles[i]
+
+      if (h.getBounds().contains(pointer.worldX, pointer.worldY)) {
+
+        h.destroy()
+
+        this.pathHandles.splice(i, 1)
+        this.mushroomPath.splice(i, 1)
+
+        this.refreshPathEditor()
+
+        return
+      }
+    }
+  }
+
+  // NORMAL CLICK = ADD
+  const clickedHandle = this.pathHandles.some(h =>
+    h.getBounds().contains(pointer.worldX, pointer.worldY)
+  )
+
+  if (clickedHandle) return
+
+  this.mushroomPath.push({
+    x: pointer.worldX,
+    y: pointer.worldY,
+  })
+
+  this.refreshPathEditor()
+})
 
 
     // =================================================
@@ -452,6 +545,74 @@ class MainScene extends Phaser.Scene {
     }).setOrigin(0.5, 0).setVisible(false).setDepth(20)
 
     this.activeFaceEmoji = null  // '😍' | '😱' | null
+    refreshPathEditor() {
+
+  this.pathGraphics.clear()
+
+  this.pathHandles.forEach(h => h.destroy())
+  this.pathHandles = []
+
+  if (!this.pathEditorEnabled) {
+    this.pathText.setVisible(false)
+    this.pathHelp.setVisible(false)
+    return
+  }
+
+  this.pathText.setVisible(true)
+  this.pathHelp.setVisible(true)
+
+  // Draw path lines
+  this.pathGraphics.lineStyle(4, 0x00ff88, 1)
+
+  for (let i = 0; i < this.mushroomPath.length - 1; i++) {
+
+    const p1 = this.mushroomPath[i]
+    const p2 = this.mushroomPath[i + 1]
+
+    this.pathGraphics.lineBetween(
+      p1.x,
+      p1.y,
+      p2.x,
+      p2.y
+    )
+  }
+
+  // Draw points
+  this.mushroomPath.forEach((p) => {
+
+    this.pathGraphics.fillStyle(0xffcc00, 1)
+    this.pathGraphics.fillCircle(p.x, p.y, 8)
+
+    this.pathGraphics.fillStyle(0x000000, 1)
+    this.pathGraphics.fillCircle(p.x, p.y, 3)
+
+    const handle = this.add.circle(
+      p.x,
+      p.y,
+      18,
+      0xffffff,
+      0.001
+    )
+    .setDepth(1000)
+    .setInteractive({ draggable: true })
+
+    handle.on('drag', (pointer, dragX, dragY) => {
+
+      p.x = dragX
+      p.y = dragY
+
+      this.refreshPathEditor()
+    })
+
+    this.input.setDraggable(handle)
+
+    this.pathHandles.push(handle)
+  })
+
+  this.pathText.setText(
+`mushroomPath = ${JSON.stringify(this.mushroomPath, null, 2)}`
+  )
+}
 
     // =================================================
     // NETWORK
@@ -626,6 +787,13 @@ class MainScene extends Phaser.Scene {
   // =================================================
 
   update(_, delta) {
+    // Toggle path editor
+if (Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
+
+  this.pathEditorEnabled = !this.pathEditorEnabled
+
+  this.refreshPathEditor()
+}
     const dt       = delta / 16.666
     const running  = this.keys.run.isDown
     const accel    = running ? 0.40 : 0.24
