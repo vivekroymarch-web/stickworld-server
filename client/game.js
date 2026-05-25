@@ -1,3 +1,4 @@
+cat > /mnt/user-data/outputs/game.js << 'ENDOFFILE'
 console.log("GAME FILE LOADED")
 
 // =================================================
@@ -333,6 +334,8 @@ this.mushroom.play('mushroom-walk')
 
 this.mushroomPathIndex = 0
 this.mushroomSpeed = 1.2
+// CHANGE 3: direction flag for ping-pong path traversal
+this.mushroomDirection = 1   // 1 = forward, -1 = reverse
 
     // =================================================
     // INPUT
@@ -371,6 +374,8 @@ this.mushroomSpeed = 1.2
     this.ufoHeight       = 440
     this.faceEmojiOffset = 98
     this.jumpVelocity    = 5
+    // CHANGE 1: player speed multiplier
+    this.playerSpeed     = 1.0
 
     // ---- Settings button ----
     const settingsBtn = document.createElement('button')
@@ -476,8 +481,9 @@ this.mushroomSpeed = 1.2
     panel.appendChild(sep())
 
     // ---- Emote Scale ----
+    // CHANGE 2: label updated to reflect idle + jump are now included
     panel.appendChild(makeRow(
-      'Emote Scale', 'size multiplier for emote sprites',
+      'Emote Scale', 'size multiplier for emote sprites (incl. idle & jump)',
       () => this.emoteScale,
       v => { this.emoteScale = v },
       0.01, () => {}
@@ -531,6 +537,16 @@ this.mushroomSpeed = 1.2
       () => this.ufoHeight,
       v => { this.ufoHeight = v },
       5, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- CHANGE 1: Player Speed ----
+    panel.appendChild(makeRow(
+      'Player Speed', 'movement speed multiplier (1.0 = normal)',
+      () => this.playerSpeed,
+      v => { this.playerSpeed = Math.max(0.1, v) },
+      0.1, () => {}
     ))
 
     // =================================================
@@ -746,15 +762,15 @@ this.pathGraphics.fillCircle(p.x, p.y, 8)
 
     const key = poseMap[player.pose]
 
-    // Per-pose scale — live-tunable via the on-screen sliders
-    const isEmotePose = !['idle','walk'].includes(player.pose)
+    // CHANGE 2: idle and jump now use emoteScale, only 'walk' uses base scale
+    const isEmotePose = !['walk'].includes(player.pose)
     const scale = STICKMAN_SPRITE_SCALE * (isEmotePose ? (this.emoteScale ?? 1.65) : 1.0)
 
     // Base feet alignment: shift sprite up so feet pixel (SPRITE_FEET_Y) sits on player.y
     const feetOffsetY = (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
 
-    // Per-pose vertical nudge — live-tunable via the on-screen sliders
-    const isEmote = !['idle','walk'].includes(player.pose)
+    // CHANGE 2: idle and jump now use emoteNudge too
+    const isEmote = !['walk'].includes(player.pose)
     const nudge = isEmote ? (this.emoteNudge ?? 35) : 0
     const posY = player.y - feetOffsetY + nudge
 
@@ -836,8 +852,9 @@ this.pathGraphics.fillCircle(p.x, p.y, 8)
 
     const dt       = delta / 16.666
     const running  = this.keys.run.isDown
-    const accel    = running ? 0.16 : 0.08
-const maxSpeed = running ? 1.4  : 1.2
+    // CHANGE 1: accel and maxSpeed scaled by playerSpeed
+    const accel    = running ? 0.16 * (this.playerSpeed ?? 1) : 0.08 * (this.playerSpeed ?? 1)
+    const maxSpeed = running ? 1.4  * (this.playerSpeed ?? 1) : 1.2  * (this.playerSpeed ?? 1)
     const friction = 0.82
 
     if (this.keys.left.isDown) {
@@ -1003,45 +1020,54 @@ const maxSpeed = running ? 1.4  : 1.2
     this.ufo.setPosition(ufoScreenX, ufoScreenY)
     this.ufo.setScale(this.ufoScale)
     this.ufo.setRotation(ufoRotation)
-// =================================================
-// MUSHROOM MOVEMENT
-// =================================================
 
-if (this.mushroomPath.length > 1) {
+    // =================================================
+    // CHANGE 3: MUSHROOM PING-PONG PATH MOVEMENT
+    // =================================================
 
-  const nextIndex = this.mushroomPathIndex + 1
+    if (this.mushroomPath.length > 1) {
 
-if (nextIndex >= this.mushroomPath.length) {
-  return
-}
+      const nextIndex = this.mushroomPathIndex + this.mushroomDirection
 
-const target = this.mushroomPath[nextIndex]
+      // Hit the end → reverse direction
+      if (nextIndex >= this.mushroomPath.length) {
+        this.mushroomDirection = -1
+      }
+      // Hit the start → go forward again
+      else if (nextIndex < 0) {
+        this.mushroomDirection = 1
+      }
 
-  const dx = target.x - this.mushroom.x
-  const dy = target.y - this.mushroom.y
+      const safeNext = Phaser.Math.Clamp(
+        this.mushroomPathIndex + this.mushroomDirection,
+        0,
+        this.mushroomPath.length - 1
+      )
 
-  const dist = Math.sqrt(dx * dx + dy * dy)
+      const target = this.mushroomPath[safeNext]
 
-  if (dist < 8) {
+      const dx = target.x - this.mushroom.x
+      const dy = target.y - this.mushroom.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
 
-    this.mushroomPathIndex++
+      if (dist < 8) {
+        this.mushroomPathIndex = safeNext
+      } else {
+        const moveX = (dx / dist) * this.mushroomSpeed
+        const moveY = (dy / dist) * this.mushroomSpeed
 
-  } else {
+        this.mushroom.x += moveX
+        this.mushroom.y += moveY
 
-    const moveX = (dx / dist) * this.mushroomSpeed
-    const moveY = (dy / dist) * this.mushroomSpeed
-
-    this.mushroom.x += moveX
-    this.mushroom.y += moveY
-
-    // face movement direction
-    if (moveX > 0) {
-      this.mushroom.setScale(-2, 2)
-    } else {
-      this.mushroom.setScale(2, 2)
+        // face movement direction
+        if (moveX > 0) {
+          this.mushroom.setScale(-2, 2)
+        } else {
+          this.mushroom.setScale(2, 2)
+        }
+      }
     }
-  }
-}
+
     for (const id in this.remotePlayers) {
       const remote = this.remotePlayers[id]
       this.renderCharacter(remote.graphics, remote.sprite, remote, remote.color, false)
@@ -1212,3 +1238,4 @@ export const gameConfig = {
 }
 
 new Phaser.Game(gameConfig)
+new Phaser.Game(gameConfig);
