@@ -174,99 +174,100 @@ class MainScene extends Phaser.Scene {
     this.ufoScale  = 0.71
     this.ufoHeight = 440
     this.ufoTime   = 0
+
     // =================================================
-// MUSHROOM PATH EDITOR
-// =================================================
+    // MUSHROOM PATH EDITOR
+    // =================================================
 
-this.pathEditorEnabled = false
+    this.pathEditorEnabled = false
 
-this.mushroomPath = [
-  { x: 400, y: this.groundY - 40 },
-  { x: 700, y: this.groundY - 120 },
-  { x: 1100, y: this.groundY - 40 },
-]
+    this.mushroomPath = [
+      { x: 400, y: this.groundY - 40 },
+      { x: 700, y: this.groundY - 120 },
+      { x: 1100, y: this.groundY - 40 },
+    ]
 
-this.pathGraphics = this.add.graphics().setDepth(999)
+    this.pathGraphics = this.add.graphics().setDepth(999)
 
-this.pathHandles = []
+    this.pathHandles = []
 
-this.pathText = this.add.text(20, 90, '', {
-  fontFamily: 'monospace',
-  fontSize: '12px',
-  color: '#00ff88',
-  backgroundColor: '#000000aa',
-  padding: { x: 8, y: 6 }
-})
-.setScrollFactor(0)
-.setDepth(999)
+    this.pathText = this.add.text(20, 90, '', {
+      fontFamily: 'monospace',
+      fontSize: '12px',
+      color: '#00ff88',
+      backgroundColor: '#000000aa',
+      padding: { x: 8, y: 6 }
+    })
+    .setScrollFactor(0)
+    .setDepth(999)
 
-this.pathHelp = this.add.text(
-  20,
-  180,
-  'P = toggle path editor\nLEFT CLICK = add point\nDRAG = move point\nHOLD X + CLICK = delete point',
-  {
-    fontFamily: 'Arial',
-    fontSize: '13px',
-    color: '#ffffff',
-    backgroundColor: '#000000aa',
-    padding: { x: 8, y: 6 }
-  }
-)
-.setScrollFactor(0)
-.setDepth(999)
-.setVisible(false)
-
-this.pathToggleKey = this.input.keyboard.addKey(
-  Phaser.Input.Keyboard.KeyCodes.P
-)
-
-this.pathDeleteKey = this.input.keyboard.addKey(
-  Phaser.Input.Keyboard.KeyCodes.X
-)
-
-this.input.mouse.disableContextMenu()
-
-this.refreshPathEditor()
-
-this.input.on('pointerdown', (pointer) => {
-
-  if (!this.pathEditorEnabled) return
-
-  // X KEY HELD = DELETE
-  if (this.pathDeleteKey.isDown) {
-
-    for (let i = this.pathHandles.length - 1; i >= 0; i--) {
-
-      const h = this.pathHandles[i]
-
-      if (h.getBounds().contains(pointer.worldX, pointer.worldY)) {
-
-        h.destroy()
-
-        this.pathHandles.splice(i, 1)
-        this.mushroomPath.splice(i, 1)
-
-        this.refreshPathEditor()
-
-        return
+    this.pathHelp = this.add.text(
+      20,
+      180,
+      'P = toggle path editor\nLEFT CLICK = add point\nDRAG = move point\nHOLD X + CLICK = delete point',
+      {
+        fontFamily: 'Arial',
+        fontSize: '13px',
+        color: '#ffffff',
+        backgroundColor: '#000000aa',
+        padding: { x: 8, y: 6 }
       }
-    }
-  }
+    )
+    .setScrollFactor(0)
+    .setDepth(999)
+    .setVisible(false)
 
-  // NORMAL CLICK = ADD
-  const clickedHandle = this.pathHandles.some(h =>
-    h.getBounds().contains(pointer.worldX, pointer.worldY)
-  )
+    this.pathToggleKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.P
+    )
 
-  if (clickedHandle) return
+    this.pathDeleteKey = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.X
+    )
 
-  this.mushroomPath.push({
-    x: pointer.worldX,
-    y: pointer.worldY,
-  })
+    this.input.mouse.disableContextMenu()
 
-  this.refreshPathEditor()
-})
+    this.refreshPathEditor()
+
+    this.input.on('pointerdown', (pointer) => {
+
+      if (!this.pathEditorEnabled) return
+
+      // X KEY HELD = DELETE
+      if (this.pathDeleteKey.isDown) {
+
+        for (let i = this.pathHandles.length - 1; i >= 0; i--) {
+
+          const h = this.pathHandles[i]
+
+          if (h.getBounds().contains(pointer.worldX, pointer.worldY)) {
+
+            h.destroy()
+
+            this.pathHandles.splice(i, 1)
+            this.mushroomPath.splice(i, 1)
+
+            this.refreshPathEditor()
+
+            return
+          }
+        }
+      }
+
+      // NORMAL CLICK = ADD
+      const clickedHandle = this.pathHandles.some(h =>
+        h.getBounds().contains(pointer.worldX, pointer.worldY)
+      )
+
+      if (clickedHandle) return
+
+      this.mushroomPath.push({
+        x: pointer.worldX,
+        y: pointer.worldY,
+      })
+
+      this.refreshPathEditor()
+    })
 
 
     // =================================================
@@ -727,10 +728,7 @@ this.input.on('pointerdown', (pointer) => {
     } else {
       sprite.anims.timeScale = 1
     }
-
   }
-
-
 
   // =================================================
   // POINT — IK arm following cursor
@@ -786,12 +784,11 @@ this.input.on('pointerdown', (pointer) => {
 
   update(_, delta) {
     // Toggle path editor
-if (Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
+    if (Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
+      this.pathEditorEnabled = !this.pathEditorEnabled
+      this.refreshPathEditor()
+    }
 
-  this.pathEditorEnabled = !this.pathEditorEnabled
-
-  this.refreshPathEditor()
-}
     const dt       = delta / 16.666
     const running  = this.keys.run.isDown
     const accel    = running ? 0.40 : 0.24
@@ -813,7 +810,7 @@ if (Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
 
     this.player.x += this.player.vx * dt * 4
 
-    if (this.player.x < 40)              this.player.x = 40
+    if (this.player.x < 40)               this.player.x = 40
     if (this.player.x > WORLD_WIDTH - 40) this.player.x = WORLD_WIDTH - 40
 
     if (this.keys.jump.isDown && this.player.grounded) {
@@ -896,7 +893,6 @@ if (Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
 
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
-
 
     // =================================================
     // EMOJI POINTER UPDATE
