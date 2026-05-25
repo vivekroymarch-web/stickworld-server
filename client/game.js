@@ -82,6 +82,8 @@ class MainScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image('bg', 'assets/background.png')
+
     this.load.spritesheet(
       'stickman-idle-sheet',
       'assets/stickman/stickman_idle_sheet.png',
@@ -143,7 +145,9 @@ class MainScene extends Phaser.Scene {
     // BACKGROUND
     // =================================================
 
-    this.add.rectangle(0, 0, WORLD_WIDTH, this.scale.height, 0xfafafa).setOrigin(0)
+    this.bgSprite = this.add.tileSprite(0, 0, WORLD_WIDTH, this.scale.height, 'bg')
+      .setOrigin(0)
+      .setDepth(-1)
 
     // =================================================
     // GROUND
@@ -555,6 +559,9 @@ class MainScene extends Phaser.Scene {
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
 
+    // Parallax background — scrolls at 30% of camera speed
+    this.bgSprite.setTilePosition(this.scrollX * 0.3, 0)
+
 
     // =================================================
     // EMOJI POINTER UPDATE
@@ -731,7 +738,7 @@ export const gameConfig = {
   width: window.innerWidth,
   height: window.innerHeight,
   parent: 'app',
-  backgroundColor: '#fafafa',
+  backgroundColor: '#87CEEB',
   physics: {
     default: 'arcade',
     arcade: { debug: false },
