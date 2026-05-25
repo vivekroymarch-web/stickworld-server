@@ -143,28 +143,40 @@ class MainScene extends Phaser.Scene {
     // BACKGROUND
     // =================================================
 
-    // Inject a CSS background div — reliable across all image sizes
-    // Covers from top of screen down to the ground line only
-    const groundPercent = ((this.groundY) / this.scale.height * 100).toFixed(2)
-    const bgDiv = document.createElement('div')
-    bgDiv.id = 'game-bg'
-    bgDiv.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: ${groundPercent}%;
-      background: url('assets/background.png') center center / cover no-repeat;
-      z-index: 0;
-      pointer-events: none;
-    `
-    document.body.appendChild(bgDiv)
+    // Sky gradient background (solid color until image is confirmed working)
+    this.add.rectangle(0, 0, WORLD_WIDTH, this.groundY, 0x87CEEB).setOrigin(0, 0).setDepth(-2)
 
-    // Make Phaser canvas transparent so the CSS bg shows through
-    this.game.canvas.style.background = 'transparent'
-    this.renderer.gl
-      ? this.renderer.gl.clearColor(0, 0, 0, 0)
-      : (this.game.canvas.style.backgroundColor = 'transparent')
+    // Try loading background image via DOM — works with any image size
+    const bgImg = new Image()
+    bgImg.onload = () => {
+      // Image confirmed available — inject CSS div behind canvas
+      let bgDiv = document.getElementById('game-bg')
+      if (!bgDiv) {
+        bgDiv = document.createElement('div')
+        bgDiv.id = 'game-bg'
+        document.body.insertBefore(bgDiv, document.body.firstChild)
+      }
+      const groundPercent = (this.groundY / this.scale.height * 100).toFixed(2)
+      bgDiv.style.cssText = `
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: ${groundPercent}%;
+        background: url('assets/background.png') center center / cover no-repeat;
+        z-index: -1;
+        pointer-events: none;
+      `
+      // Make canvas transparent only after image is confirmed loaded
+      this.game.canvas.style.background = 'transparent'
+      this.game.canvas.style.backgroundColor = 'transparent'
+      if (this.renderer.gl) {
+        this.renderer.gl.clearColor(0, 0, 0, 0)
+      }
+    }
+    bgImg.onerror = () => {
+      console.warn('background.png not found — using solid sky color fallback')
+    }
+    bgImg.src = 'assets/background.png'
 
     // =================================================
     // GROUND
