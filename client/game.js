@@ -500,10 +500,6 @@ const leftKneeY =
     ? hipWalkY + 30
     : hipWalkY + 22
 
-  const leftKneeY =
-    leftSupport
-      ? hipWalkY + 34
-      : hipWalkY + 24
 
   graphics.lineBetween(
     hipX,
@@ -532,10 +528,7 @@ const rightKneeY =
     ? hipWalkY + 22
     : hipWalkY + 30
 
-  const rightKneeY =
-    leftSupport
-      ? hipWalkY + 24
-      : hipWalkY + 34
+
 
   graphics.lineBetween(
     hipX,
