@@ -18,6 +18,47 @@
 </head>
 
 <body>
+    <div
+  style="
+    position:fixed;
+    top:20px;
+    right:20px;
+    z-index:999;
+    background:white;
+    padding:12px;
+    border-radius:10px;
+    font-family:Arial;
+  "
+>
+  <input
+    id="player-name"
+    placeholder="Your name"
+    style="
+      margin-bottom:8px;
+      width:140px;
+    "
+  />
+
+  <br>
+
+  <select id="player-color">
+    <option value="red">
+      Red
+    </option>
+
+    <option value="orange">
+      Orange
+    </option>
+
+    <option value="green">
+      Green
+    </option>
+
+    <option value="purple">
+      Purple
+    </option>
+  </select>
+</div>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
   <script type="module" src="./game.js/game.js"></script>
 

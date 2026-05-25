@@ -34,12 +34,12 @@ class MainScene extends Phaser.Scene {
     // BACKGROUND
     // =================================================
 
-    this.add.rectangle(
-      0,
-      0,
-      this.scale.width,
-      this.scale.height,
-      0xffffff
+    this.ground = this.add.rectangle(
+  this.scale.width / 2,
+  this.groundY + 60,
+  this.scale.width * 4,
+  120,
+  0xe8e8e8
     )
     .setOrigin(0)
 
@@ -167,7 +167,22 @@ class MainScene extends Phaser.Scene {
         color: '#111111',
       }
     )
+this.cameras.main.startFollow(
+  {
+    x: this.player.x,
+    y: this.player.y,
+  },
+  true,
+  0.08,
+  0.08
+)
 
+this.cameras.main.setBounds(
+  0,
+  0,
+  this.scale.width * 4,
+  this.scale.height
+)
     // =================================================
     // NETWORK
     // =================================================
@@ -913,7 +928,7 @@ class MainScene extends Phaser.Scene {
       Phaser.Math.Clamp(
         this.player.x,
         40,
-        this.scale.width - 40
+        this.scale.width * 4 - 40
       )
 
     if (
@@ -988,6 +1003,23 @@ class MainScene extends Phaser.Scene {
       this.player.x,
       this.player.y - 160
     )
+    for (const id in this.remotePlayers) {
+
+  const remote =
+    this.remotePlayers[id]
+
+  this.drawCharacter(
+    remote.graphics,
+    remote,
+    remote.color,
+    false
+  )
+
+  remote.label.setPosition(
+    remote.x,
+    remote.y - 160
+  )
+}
   }
 
   connectNetwork() {
