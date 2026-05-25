@@ -1238,4 +1238,3 @@ export const gameConfig = {
 }
 
 new Phaser.Game(gameConfig)
-new Phaser.Game(gameConfig);
