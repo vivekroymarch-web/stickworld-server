@@ -181,11 +181,7 @@ class MainScene extends Phaser.Scene {
 
     this.pathEditorEnabled = false
 
-    this.mushroomPath = [
-      { x: 400, y: this.groundY - 40 },
-      { x: 700, y: this.groundY - 120 },
-      { x: 1100, y: this.groundY - 40 },
-    ]
+    this.mushroomPath = []
 
     this.pathGraphics = this.add.graphics().setDepth(999)
 
@@ -592,9 +588,21 @@ class MainScene extends Phaser.Scene {
     }
 
     // Draw points
-    this.mushroomPath.forEach((p) => {
-      this.pathGraphics.fillStyle(0xffcc00, 1)
-      this.pathGraphics.fillCircle(p.x, p.y, 8)
+    this.mushroomPath.forEach((p, index) => {
+      if (index === 0) {
+  // START POINT = GREEN
+  this.pathGraphics.fillStyle(0x00ff00, 1)
+}
+else if (index === this.mushroomPath.length - 1) {
+  // END POINT = RED
+  this.pathGraphics.fillStyle(0xff0000, 1)
+}
+else {
+  // NORMAL POINT = YELLOW
+  this.pathGraphics.fillStyle(0xffcc00, 1)
+}
+
+this.pathGraphics.fillCircle(p.x, p.y, 8)
 
       this.pathGraphics.fillStyle(0x000000, 1)
       this.pathGraphics.fillCircle(p.x, p.y, 3)
