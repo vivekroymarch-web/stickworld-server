@@ -228,11 +228,13 @@ class MainScene extends Phaser.Scene {
     // SETTINGS PANEL — collapsible, behind ⚙ button
     // =================================================
 
-    this.emoteNudge   = 35
-    this.emoteScale   = 1.65
-    this.groundOffset = 91
-    this.ufoScale     = 0.71
-    this.ufoHeight    = 440
+    this.emoteNudge      = 35
+    this.emoteScale      = 1.65
+    this.groundOffset    = 91
+    this.ufoScale        = 0.71
+    this.ufoHeight       = 440
+    this.faceEmojiOffset = 148   // px above player.y — tune to align emoji with face
+    this.jumpVelocity    = 7     // upward force on normal jump (run jump = this * 1.286)
 
     // ---- Settings button ----
     const settingsBtn = document.createElement('button')
@@ -393,6 +395,26 @@ class MainScene extends Phaser.Scene {
       () => this.ufoHeight,
       v => { this.ufoHeight = v },
       5, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- Face Emoji Offset ----
+    panel.appendChild(makeRow(
+      'Face Emoji Y', 'px above player feet — raise/lower 😍 😱 to hit the face',
+      () => this.faceEmojiOffset,
+      v => { this.faceEmojiOffset = v },
+      1, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- Jump Velocity ----
+    panel.appendChild(makeRow(
+      'Jump Height', 'upward force on normal jump (run-jump = ×1.286)',
+      () => this.jumpVelocity,
+      v => { this.jumpVelocity = v },
+      0.5, () => {}
     ))
 
     // =================================================
@@ -637,7 +659,7 @@ class MainScene extends Phaser.Scene {
     if (this.player.x > WORLD_WIDTH - 40) this.player.x = WORLD_WIDTH - 40
 
     if (this.keys.jump.isDown && this.player.grounded) {
-      this.player.vy = running ? -9 : -7
+      this.player.vy = running ? -(this.jumpVelocity ?? 7) * 1.286 : -(this.jumpVelocity ?? 7)
       this.player.grounded = false
     }
 
@@ -692,8 +714,8 @@ class MainScene extends Phaser.Scene {
     }
 
     if (this.activeFaceEmoji) {
-      // Position on character head — slightly above nameText
-      const headY = this.player.y - 148
+      // Position on character head — offset tunable via Settings panel
+      const headY = this.player.y - (this.faceEmojiOffset ?? 148)
       this.faceEmoji
         .setText(this.activeFaceEmoji)
         .setPosition(this.player.x, headY)
