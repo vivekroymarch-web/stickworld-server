@@ -545,74 +545,6 @@ this.input.on('pointerdown', (pointer) => {
     }).setOrigin(0.5, 0).setVisible(false).setDepth(20)
 
     this.activeFaceEmoji = null  // '😍' | '😱' | null
-    refreshPathEditor() {
-
-  this.pathGraphics.clear()
-
-  this.pathHandles.forEach(h => h.destroy())
-  this.pathHandles = []
-
-  if (!this.pathEditorEnabled) {
-    this.pathText.setVisible(false)
-    this.pathHelp.setVisible(false)
-    return
-  }
-
-  this.pathText.setVisible(true)
-  this.pathHelp.setVisible(true)
-
-  // Draw path lines
-  this.pathGraphics.lineStyle(4, 0x00ff88, 1)
-
-  for (let i = 0; i < this.mushroomPath.length - 1; i++) {
-
-    const p1 = this.mushroomPath[i]
-    const p2 = this.mushroomPath[i + 1]
-
-    this.pathGraphics.lineBetween(
-      p1.x,
-      p1.y,
-      p2.x,
-      p2.y
-    )
-  }
-
-  // Draw points
-  this.mushroomPath.forEach((p) => {
-
-    this.pathGraphics.fillStyle(0xffcc00, 1)
-    this.pathGraphics.fillCircle(p.x, p.y, 8)
-
-    this.pathGraphics.fillStyle(0x000000, 1)
-    this.pathGraphics.fillCircle(p.x, p.y, 3)
-
-    const handle = this.add.circle(
-      p.x,
-      p.y,
-      18,
-      0xffffff,
-      0.001
-    )
-    .setDepth(1000)
-    .setInteractive({ draggable: true })
-
-    handle.on('drag', (pointer, dragX, dragY) => {
-
-      p.x = dragX
-      p.y = dragY
-
-      this.refreshPathEditor()
-    })
-
-    this.input.setDraggable(handle)
-
-    this.pathHandles.push(handle)
-  })
-
-  this.pathText.setText(
-`mushroomPath = ${JSON.stringify(this.mushroomPath, null, 2)}`
-  )
-}
 
     // =================================================
     // NETWORK
@@ -626,6 +558,72 @@ this.input.on('pointerdown', (pointer) => {
       callback: this.broadcastPosition,
       callbackScope: this,
     })
+  }
+
+  refreshPathEditor() {
+    this.pathGraphics.clear()
+
+    this.pathHandles.forEach(h => h.destroy())
+    this.pathHandles = []
+
+    if (!this.pathEditorEnabled) {
+      this.pathText.setVisible(false)
+      this.pathHelp.setVisible(false)
+      return
+    }
+
+    this.pathText.setVisible(true)
+    this.pathHelp.setVisible(true)
+
+    // Draw path lines
+    this.pathGraphics.lineStyle(4, 0x00ff88, 1)
+
+    for (let i = 0; i < this.mushroomPath.length - 1; i++) {
+      const p1 = this.mushroomPath[i]
+      const p2 = this.mushroomPath[i + 1]
+
+      this.pathGraphics.lineBetween(
+        p1.x,
+        p1.y,
+        p2.x,
+        p2.y
+      )
+    }
+
+    // Draw points
+    this.mushroomPath.forEach((p) => {
+      this.pathGraphics.fillStyle(0xffcc00, 1)
+      this.pathGraphics.fillCircle(p.x, p.y, 8)
+
+      this.pathGraphics.fillStyle(0x000000, 1)
+      this.pathGraphics.fillCircle(p.x, p.y, 3)
+
+      const handle = this.add.circle(
+        p.x,
+        p.y,
+        18,
+        0xffffff,
+        0.001
+      )
+      .setDepth(1000)
+      .setInteractive({ draggable: true })
+
+      handle.on('drag', (pointer, dragX, dragY) => {
+        p.x = dragX
+        p.y = dragY
+
+        this.refreshPathEditor()
+      })
+
+      this.input.setDraggable(handle)
+
+      this.pathHandles.push(handle)
+    })
+
+    this.pathText.setText(
+      'mushroomPath = ' +
+      JSON.stringify(this.mushroomPath, null, 2)
+    )
   }
 
   // =================================================
