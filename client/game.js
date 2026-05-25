@@ -376,6 +376,48 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
     this.jumpVelocity    = 5
     // CHANGE 1: player speed multiplier
     this.playerSpeed     = 1.0
+    this.animationAdjustments = {
+
+  idle: {
+    offsetY: 35,
+    scale: 1.65,
+  },
+
+  walk: {
+    offsetY: 0,
+    scale: 1.0,
+  },
+
+  jump: {
+    offsetY: 35,
+    scale: 1.65,
+  },
+
+  laugh: {
+    offsetY: 35,
+    scale: 1.65,
+  },
+
+  heavy_laugh: {
+    offsetY: 35,
+    scale: 1.65,
+  },
+
+  cry: {
+    offsetY: 35,
+    scale: 1.65,
+  },
+
+  angry: {
+    offsetY: 35,
+    scale: 1.65,
+  },
+
+  moderately_angry: {
+    offsetY: 35,
+    scale: 1.65,
+  }
+}
 
     // ---- Settings button ----
     const settingsBtn = document.createElement('button')
@@ -450,6 +492,24 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
     }
 
     const sep = () => {
+      const makeSectionTitle = (title) => {
+
+  const el = document.createElement('div')
+
+  el.style.cssText = `
+    margin-top: 10px;
+    padding: 6px 8px;
+    background: #f2f2f2;
+    border-radius: 6px;
+    font-weight: bold;
+    color: #333;
+    font-size: 13px;
+  `
+
+  el.textContent = title
+
+  return el
+}
       const d = document.createElement('div')
       d.style.cssText = 'border-top:1px solid #eee;margin:2px 0'
       return d
@@ -471,27 +531,12 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
     panel.appendChild(sep())
 
     // ---- Emote Offset ----
-    panel.appendChild(makeRow(
-      'Emote Offset', 'vertical nudge for emote sprites (laugh, cry, angry…)',
-      () => this.emoteNudge,
-      v => { this.emoteNudge = v },
-      1, () => {}
-    ))
-
-    panel.appendChild(sep())
+    
 
     // ---- Emote Scale ----
-    // CHANGE 2: label updated to reflect idle + jump are now included
-    panel.appendChild(makeRow(
-      'Emote Scale', 'size multiplier for emote sprites (incl. idle & jump)',
-      () => this.emoteScale,
-      v => { this.emoteScale = v },
-      0.01, () => {}
-    ))
-
-    panel.appendChild(sep())
-
+    // CHANGE 2: label updated to reflect idle + jump 
     // ---- BG Position X ----
+
     panel.appendChild(makeRow(
       'BG Position X', 'horizontal focus of background image (0=left, 100=right)',
       () => window._bgPosX ?? 50,
@@ -548,6 +593,46 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
       v => { this.playerSpeed = Math.max(0.1, v) },
       0.1, () => {}
     ))
+    panel.appendChild(sep())
+
+panel.appendChild(
+  makeSectionTitle('Animation Adjustments')
+)
+
+Object.keys(this.animationAdjustments).forEach(anim => {
+
+  panel.appendChild(
+    makeSectionTitle(anim.toUpperCase())
+  )
+
+  // SCALE
+
+  panel.appendChild(makeRow(
+    `${anim} Scale`,
+    'animation scale',
+    () => this.animationAdjustments[anim].scale,
+    v => {
+      this.animationAdjustments[anim].scale = v
+    },
+    0.01,
+    () => {}
+  ))
+
+  // OFFSET
+
+  panel.appendChild(makeRow(
+    `${anim} OffsetY`,
+    'vertical adjustment',
+    () => this.animationAdjustments[anim].offsetY,
+    v => {
+      this.animationAdjustments[anim].offsetY = v
+    },
+    1,
+    () => {}
+  ))
+
+  panel.appendChild(sep())
+})
 
     // =================================================
     // UI
@@ -761,17 +846,18 @@ this.mushroomPath.forEach((p, index) => {
 
     const key = poseMap[player.pose]
 
-    // CHANGE 2: idle and jump now use emoteScale, only 'walk' uses base scale
-    const isEmotePose = !['walk'].includes(player.pose)
-    const scale = STICKMAN_SPRITE_SCALE * (isEmotePose ? (this.emoteScale ?? 1.65) : 1.0)
+    const adjust =
+  this.animationAdjustments[player.pose] ??
+  this.animationAdjustments.idle
 
-    // Base feet alignment: shift sprite up so feet pixel (SPRITE_FEET_Y) sits on player.y
-    const feetOffsetY = (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
+const scale =
+  STICKMAN_SPRITE_SCALE * adjust.scale
 
-    // CHANGE 2: idle and jump now use emoteNudge too
-    const isEmote = !['walk'].includes(player.pose)
-    const nudge = isEmote ? (this.emoteNudge ?? 35) : 0
-    const posY = player.y - feetOffsetY + nudge
+const feetOffsetY =
+  (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
+
+const posY =
+  player.y - feetOffsetY + adjust.offsetY
 
     sprite
       .setVisible(true)
