@@ -160,9 +160,11 @@ class MainScene extends Phaser.Scene {
       .setScale(0.12)
       .setAlpha(0.82)
       .setDepth(1)
-      .setScrollFactor(0.15)  // drifts very slowly relative to camera
+      .setScrollFactor(0.15)
 
-    this.ufoTime = 0  // internal timer for sine motion
+    this.ufoScale  = 0.12   // tunable
+    this.ufoHeight = 160    // mean Y position on screen (tunable)
+    this.ufoTime   = 0
 
 
     // =================================================
@@ -367,6 +369,26 @@ class MainScene extends Phaser.Scene {
       'BG Size %', 'zoom level of background image (100=fit, higher=zoom in)',
       () => window._bgSize ?? 100,
       v => { window._bgSize = v; window._applyBg && window._applyBg() },
+      5, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- UFO Scale ----
+    panel.appendChild(makeRow(
+      'UFO Scale', 'size of the UFO (0.05=tiny, 0.3=large)',
+      () => this.ufoScale,
+      v => { this.ufoScale = v },
+      0.01, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- UFO Height ----
+    panel.appendChild(makeRow(
+      'UFO Height', 'mean vertical position on screen (px from top)',
+      () => this.ufoHeight,
+      v => { this.ufoHeight = v },
       5, () => {}
     ))
 
@@ -720,14 +742,12 @@ class MainScene extends Phaser.Scene {
     // =================================================
 
     this.ufoTime += delta * 0.001
-    // Slow horizontal drift — loops across screen width
     const ufoScreenX = ((this.ufoTime * 28) % (this.scale.width + 200)) - 100
-    // Gentle vertical float using sine wave
-    const ufoScreenY = 160 + Math.sin(this.ufoTime * 0.6) * 18
-    // Tiny rotation wobble
+    const ufoScreenY = this.ufoHeight + Math.sin(this.ufoTime * 0.6) * 18
     const ufoRotation = Math.sin(this.ufoTime * 1.1) * 0.04
 
     this.ufo.setPosition(ufoScreenX, ufoScreenY)
+    this.ufo.setScale(this.ufoScale)
     this.ufo.setRotation(ufoRotation)
 
     for (const id in this.remotePlayers) {
