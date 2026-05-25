@@ -283,21 +283,7 @@ class MainScene extends Phaser.Scene {
 // MUSHROOM NPC
 // =================================================
 
-this.mushroom = this.add.sprite(
-  this.mushroomPath[0].x,
-  this.mushroomPath[0].y,
-  'mushroom-sheet'
-)
 
-this.mushroom
-  .setOrigin(0.5, 1)
-  .setScale(2)
-  .setDepth(8)
-
-this.mushroom.play('mushroom-walk')
-
-this.mushroomPathIndex = 0
-this.mushroomSpeed = 1.2
     // =================================================
     // PLAYER
     // =================================================
@@ -328,6 +314,25 @@ this.mushroomSpeed = 1.2
     this.playerSprite.setScrollFactor(1)
     this.playerSprite.setDepth(10)
     this.createSpriteAnimations()
+    // =================================================
+// MUSHROOM NPC
+// =================================================
+
+this.mushroom = this.add.sprite(
+  this.mushroomPath[0].x,
+  this.mushroomPath[0].y,
+  'mushroom-sheet'
+)
+
+this.mushroom
+  .setOrigin(0.5, 1)
+  .setScale(2)
+  .setDepth(8)
+
+this.mushroom.play('mushroom-walk')
+
+this.mushroomPathIndex = 0
+this.mushroomSpeed = 1.2
 
     // =================================================
     // INPUT
