@@ -324,38 +324,41 @@ this.cameras.main.setBounds(
 ) {
 
   // =========================================
-  // CLEAN STICKMAN WALK
+  // PHASE WALK SYSTEM
   // =========================================
 
   const walkPhase =
-    t * 2.2
+    (t * 1.35) % 1
 
-  const leftStep =
-    Math.sin(walkPhase)
+  const leftSupport =
+    walkPhase < 0.5
 
-  const rightStep =
-    Math.sin(
-      walkPhase + Math.PI
-    )
+  const phase =
+    leftSupport
+      ? walkPhase / 0.5
+      : (walkPhase - 0.5) / 0.5
 
   // =========================================
-  // MINIMAL BODY MOTION
+  // BODY WEIGHT SHIFT
   // =========================================
+
+  const supportBlend =
+  Math.sin(walkPhase * Math.PI * 2)
+
+const supportOffset =
+  supportBlend * 5
 
   const bodyBob =
-    Math.abs(leftStep) * 4
+    Math.sin(phase * Math.PI) * 4
 
-  const lean =
-    player.vx * 0.8
+  const torsoX =
+    x + supportOffset
 
-  const torsoTopX =
-    x + lean
-
-  const torsoTopY =
+  const torsoY =
     neckY - bodyBob
 
   const hipX =
-    x
+    x + supportOffset * 0.6
 
   const hipWalkY =
     hipY - bodyBob
@@ -365,55 +368,142 @@ this.cameras.main.setBounds(
   // =========================================
 
   graphics.lineBetween(
-    torsoTopX,
-    torsoTopY,
+    torsoX,
+    torsoY,
     hipX,
     hipWalkY
   )
 
   // =========================================
-  // SIMPLE ARM SWING
+  // ARMS
   // =========================================
 
-  const armSwing = 16
+  const armSwing =
+    Phaser.Math.Linear(
+      -10,
+      10,
+      phase
+    )
+
+  const leftArm =
+    leftSupport
+      ? armSwing
+      : -armSwing
+
+  const rightArm =
+    -leftArm
 
   graphics.lineBetween(
-    torsoTopX,
+    torsoX,
     chestY,
-    torsoTopX -
-      rightStep * armSwing,
+    torsoX + leftArm,
     chestY + 18
   )
 
   graphics.lineBetween(
-    torsoTopX,
+    torsoX,
     chestY,
-    torsoTopX -
-      leftStep * armSwing,
+    torsoX + rightArm,
     chestY + 18
   )
+
+  // =========================================
+  // FOOT POSITIONS
+  // =========================================
+
+  const plantedLeftX =
+    hipX - 18
+
+  const plantedRightX =
+    hipX + 18
+
+  let leftFootX
+  let leftFootY
+
+  let rightFootX
+  let rightFootY
+
+  // =========================================
+  // LEFT SUPPORT
+  // =========================================
+
+  if (leftSupport) {
+
+  leftFootX =
+    plantedLeftX
+
+  leftFootY =
+    feetY
+
+  const swingArc =
+    Math.sin(
+      phase * Math.PI
+    )
+
+  rightFootX =
+    Phaser.Math.Linear(
+      plantedLeftX - 8,
+      plantedRightX + 8,
+      phase
+    )
+
+  rightFootY =
+    feetY -
+    swingArc * 16
+
+  rightFootX +=
+    swingArc * 6
+}
+
+  // =========================================
+  // RIGHT SUPPORT
+  // =========================================
+
+ else {
+
+  rightFootX =
+    plantedRightX
+
+  rightFootY =
+    feetY
+
+  const swingArc =
+    Math.sin(
+      phase * Math.PI
+    )
+
+  leftFootX =
+    Phaser.Math.Linear(
+      plantedRightX + 8,
+      plantedLeftX - 8,
+      phase
+    )
+
+  leftFootY =
+    feetY -
+    swingArc * 16
+
+  leftFootX -=
+    swingArc * 6
+}
 
   // =========================================
   // LEFT LEG
   // =========================================
 
-  const leftLift =
-    Math.max(0, leftStep)
-
-  const leftFootX =
-    hipX -
-    leftStep * 22
-
-  const leftFootY =
-    feetY -
-    leftLift * 10
-
   const leftKneeX =
-    hipX -
-    leftStep * 10
+  (hipX + leftFootX) * 0.5 -
+  (leftSupport ? 2 : 8)
+
+const leftKneeY =
+  leftSupport
+    ? hipWalkY + 30
+    : hipWalkY + 22
 
   const leftKneeY =
-    hipWalkY + 28
+    leftSupport
+      ? hipWalkY + 34
+      : hipWalkY + 24
 
   graphics.lineBetween(
     hipX,
@@ -433,23 +523,19 @@ this.cameras.main.setBounds(
   // RIGHT LEG
   // =========================================
 
-  const rightLift =
-    Math.max(0, rightStep)
-
-  const rightFootX =
-    hipX -
-    rightStep * 22
-
-  const rightFootY =
-    feetY -
-    rightLift * 10
-
   const rightKneeX =
-    hipX -
-    rightStep * 10
+  (hipX + rightFootX) * 0.5 +
+  (leftSupport ? 8 : 2)
+
+const rightKneeY =
+  leftSupport
+    ? hipWalkY + 22
+    : hipWalkY + 30
 
   const rightKneeY =
-    hipWalkY + 28
+    leftSupport
+      ? hipWalkY + 24
+      : hipWalkY + 34
 
   graphics.lineBetween(
     hipX,
