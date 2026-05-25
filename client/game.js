@@ -323,186 +323,213 @@ this.cameras.main.setBounds(
   player.pose === 'walk'
 ) {
 
-  // =========================================
-  // PHASE WALK SYSTEM
-  // =========================================
+  // =====================================
+  // PHASE
+  // =====================================
 
   const walkPhase =
-    (t * 0.85) % 1
+    (t * 0.55) % 1
 
-  const leftSupport =
-    walkPhase < 0.5
+  const phase4 =
+    walkPhase * 4
 
-  const phase =
-    leftSupport
-      ? walkPhase / 0.5
-      : (walkPhase - 0.5) / 0.5
+  const poseIndex =
+    Math.floor(phase4)
 
-  // =========================================
-  // BODY WEIGHT SHIFT
-  // =========================================
+  const blend =
+    phase4 - poseIndex
 
-  const supportBlend =
-  Math.sin(walkPhase * Math.PI * 2)
+  // =====================================
+  // WALK POSES
+  // =====================================
 
-const supportOffset =
-  supportBlend * 5
+  const poses = [
 
-  const bodyBob =
-    Math.sin(phase * Math.PI) * 4
+    // CONTACT
+    {
+      bodyY: 0,
 
-  const torsoX =
-    x + supportOffset
+      leftFootX: -18,
+      leftFootY: 0,
 
-  const torsoY =
-    neckY - bodyBob
+      rightFootX: 20,
+      rightFootY: -8,
 
-  const hipX =
-    x + supportOffset * 0.6
+      leftKneeX: -8,
+      leftKneeY: 32,
+
+      rightKneeX: 10,
+      rightKneeY: 22,
+
+      leftArm: 10,
+      rightArm: -10,
+    },
+
+    // DOWN
+    {
+      bodyY: 4,
+
+      leftFootX: -16,
+      leftFootY: 0,
+
+      rightFootX: 10,
+      rightFootY: -14,
+
+      leftKneeX: -4,
+      leftKneeY: 34,
+
+      rightKneeX: 6,
+      rightKneeY: 20,
+
+      leftArm: 8,
+      rightArm: -8,
+    },
+
+    // PASSING
+    {
+      bodyY: -2,
+
+      leftFootX: -6,
+      leftFootY: 0,
+
+      rightFootX: 8,
+      rightFootY: -22,
+
+      leftKneeX: -2,
+      leftKneeY: 30,
+
+      rightKneeX: 2,
+      rightKneeY: 14,
+
+      leftArm: -8,
+      rightArm: 8,
+    },
+
+    // UP
+    {
+      bodyY: -6,
+
+      leftFootX: 10,
+      leftFootY: -16,
+
+      rightFootX: -10,
+      rightFootY: 0,
+
+      leftKneeX: 4,
+      leftKneeY: 18,
+
+      rightKneeX: -4,
+      rightKneeY: 30,
+
+      leftArm: -10,
+      rightArm: 10,
+    },
+  ]
+
+  const current =
+    poses[poseIndex]
+
+  const next =
+    poses[
+      (poseIndex + 1) % 4
+    ]
+
+  // =====================================
+  // INTERPOLATION
+  // =====================================
+
+  function lerp(a, b) {
+    return Phaser.Math.Linear(
+      a,
+      b,
+      blend
+    )
+  }
+
+  const bodyOffsetY =
+    lerp(
+      current.bodyY,
+      next.bodyY
+    )
 
   const hipWalkY =
-    hipY - bodyBob
+    hipY + bodyOffsetY
 
-  // =========================================
+  // =====================================
   // TORSO
-  // =========================================
+  // =====================================
 
   graphics.lineBetween(
-    torsoX,
-    torsoY,
-    hipX,
+    x,
+    neckY + bodyOffsetY,
+    x,
     hipWalkY
   )
 
-  // =========================================
+  // =====================================
   // ARMS
-  // =========================================
+  // =====================================
 
-  const armSwing =
-    Phaser.Math.Linear(
-      -10,
-      10,
-      phase
+  const leftArmX =
+    lerp(
+      current.leftArm,
+      next.leftArm
     )
 
-  const leftArm =
-    leftSupport
-      ? armSwing
-      : -armSwing
-
-  const rightArm =
-    -leftArm
+  const rightArmX =
+    lerp(
+      current.rightArm,
+      next.rightArm
+    )
 
   graphics.lineBetween(
-    torsoX,
+    x,
     chestY,
-    torsoX + leftArm,
+    x + leftArmX,
     chestY + 18
   )
 
   graphics.lineBetween(
-    torsoX,
+    x,
     chestY,
-    torsoX + rightArm,
+    x + rightArmX,
     chestY + 18
   )
 
-  // =========================================
-  // FOOT POSITIONS
-  // =========================================
-
-  const plantedLeftX =
-    hipX - 18
-
-  const plantedRightX =
-    hipX + 18
-
-  let leftFootX
-  let leftFootY
-
-  let rightFootX
-  let rightFootY
-
-  // =========================================
-  // LEFT SUPPORT
-  // =========================================
-
-  if (leftSupport) {
-
-  leftFootX =
-    plantedLeftX
-
-  leftFootY =
-    feetY
-
-  const swingArc =
-    Math.sin(
-      phase * Math.PI
-    )
-
-  rightFootX =
-    Phaser.Math.Linear(
-      plantedLeftX - 8,
-      plantedRightX + 8,
-      phase
-    )
-
-  rightFootY =
-    feetY -
-    swingArc * 16
-
-  rightFootX +=
-    swingArc * 6
-}
-
-  // =========================================
-  // RIGHT SUPPORT
-  // =========================================
-
- else {
-
-  rightFootX =
-    plantedRightX
-
-  rightFootY =
-    feetY
-
-  const swingArc =
-    Math.sin(
-      phase * Math.PI
-    )
-
-  leftFootX =
-    Phaser.Math.Linear(
-      plantedRightX + 8,
-      plantedLeftX - 8,
-      phase
-    )
-
-  leftFootY =
-    feetY -
-    swingArc * 16
-
-  leftFootX -=
-    swingArc * 6
-}
-
-  // =========================================
+  // =====================================
   // LEFT LEG
-  // =========================================
+  // =====================================
+
+  const leftFootX =
+    x +
+    lerp(
+      current.leftFootX,
+      next.leftFootX
+    )
+
+  const leftFootY =
+    feetY +
+    lerp(
+      current.leftFootY,
+      next.leftFootY
+    )
 
   const leftKneeX =
-  (hipX + leftFootX) * 0.5 -
-  (leftSupport ? 2 : 8)
+    x +
+    lerp(
+      current.leftKneeX,
+      next.leftKneeX
+    )
 
-const leftKneeY =
-  leftSupport
-    ? hipWalkY + 30
-    : hipWalkY + 22
-
+  const leftKneeY =
+    hipWalkY +
+    lerp(
+      current.leftKneeY,
+      next.leftKneeY
+    )
 
   graphics.lineBetween(
-    hipX,
+    x,
     hipWalkY,
     leftKneeX,
     leftKneeY
@@ -515,23 +542,40 @@ const leftKneeY =
     leftFootY
   )
 
-  // =========================================
+  // =====================================
   // RIGHT LEG
-  // =========================================
+  // =====================================
+
+  const rightFootX =
+    x +
+    lerp(
+      current.rightFootX,
+      next.rightFootX
+    )
+
+  const rightFootY =
+    feetY +
+    lerp(
+      current.rightFootY,
+      next.rightFootY
+    )
 
   const rightKneeX =
-  (hipX + rightFootX) * 0.5 +
-  (leftSupport ? 8 : 2)
+    x +
+    lerp(
+      current.rightKneeX,
+      next.rightKneeX
+    )
 
-const rightKneeY =
-  leftSupport
-    ? hipWalkY + 22
-    : hipWalkY + 30
-
-
+  const rightKneeY =
+    hipWalkY +
+    lerp(
+      current.rightKneeY,
+      next.rightKneeY
+    )
 
   graphics.lineBetween(
-    hipX,
+    x,
     hipWalkY,
     rightKneeX,
     rightKneeY
@@ -544,9 +588,9 @@ const rightKneeY =
     rightFootY
   )
 
-  // =========================================
+  // =====================================
   // FEET
-  // =========================================
+  // =====================================
 
   graphics.lineBetween(
     leftFootX,
@@ -562,7 +606,6 @@ const rightKneeY =
     rightFootY
   )
 }
-
     // =================================================
     // JUMP
     // =================================================
