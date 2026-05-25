@@ -145,9 +145,16 @@ class MainScene extends Phaser.Scene {
     // BACKGROUND
     // =================================================
 
-    this.bgSprite = this.add.tileSprite(0, 0, WORLD_WIDTH, this.scale.height, 'bg')
-      .setOrigin(0)
+    this.bgSprite = this.add.image(0, 0, 'bg')
+      .setOrigin(0, 0)
       .setDepth(-1)
+      .setScrollFactor(0.3)
+
+    // Scale to cover full screen height, maintain aspect ratio
+    const scaleX = (WORLD_WIDTH) / this.bgSprite.width
+    const scaleY = this.scale.height / this.bgSprite.height
+    const bgScale = Math.max(scaleX, scaleY)
+    this.bgSprite.setScale(bgScale)
 
     // =================================================
     // GROUND
@@ -558,9 +565,6 @@ class MainScene extends Phaser.Scene {
 
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
-
-    // Parallax background — scrolls at 30% of camera speed
-    this.bgSprite.setTilePosition(this.scrollX * 0.3, 0)
 
 
     // =================================================
