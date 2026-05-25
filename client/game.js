@@ -436,13 +436,33 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
     const panel = document.createElement('div')
     panel.id = 'settings-panel'
     panel.style.cssText = `
-      position: fixed; top: 44px; right: 10px;
-      background: rgba(255,255,255,0.97); border: 1px solid #ddd;
-      border-radius: 10px; padding: 14px 18px;
-      font-family: Arial; font-size: 13px; z-index: 9998;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-      display: none; flex-direction: column; gap: 10px; min-width: 260px;
-    `
+  position: fixed;
+  top: 44px;
+  right: 10px;
+
+  background: rgba(255,255,255,0.97);
+  border: 1px solid #ddd;
+  border-radius: 10px;
+
+  padding: 14px 18px;
+
+  font-family: Arial;
+  font-size: 13px;
+
+  z-index: 9998;
+
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+
+  min-width: 260px;
+
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+`
     document.body.appendChild(panel)
 
     settingsBtn.addEventListener('click', () => {
