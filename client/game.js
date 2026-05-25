@@ -82,6 +82,8 @@ class MainScene extends Phaser.Scene {
   }
 
   preload() {
+    this.load.image('ufo', 'assets/ufo.png')
+
     this.load.spritesheet(
       'stickman-idle-sheet',
       'assets/stickman/stickman_idle_sheet.png',
@@ -150,6 +152,18 @@ class MainScene extends Phaser.Scene {
 
     this.groundLine = this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0)
 
+    // =================================================
+    // UFO — ambient background object
+    // =================================================
+
+    this.ufo = this.add.image(400, 180, 'ufo')
+      .setScale(0.12)
+      .setAlpha(0.82)
+      .setDepth(1)
+      .setScrollFactor(0.15)  // drifts very slowly relative to camera
+
+    this.ufoTime = 0  // internal timer for sine motion
+
 
     // =================================================
     // PLAYER
@@ -207,84 +221,154 @@ class MainScene extends Phaser.Scene {
     }
 
     // =================================================
-    // ANIM TUNER — inject sliders into the page
+    // SETTINGS PANEL — collapsible, behind ⚙ button
     // =================================================
 
     this.emoteNudge = 35
     this.emoteScale = 1.65
+    this.groundOffset = 120
 
-    // Build tuner UI and inject it next to the name input
-    const tunerDiv = document.createElement('div')
-    tunerDiv.id = 'anim-tuner'
-    tunerDiv.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:16px;align-items:center;background:rgba(255,255,255,0.9);padding:6px 14px;border-radius:8px;font-family:Arial;font-size:13px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15)'
-
-    tunerDiv.innerHTML = `
-      <span style="color:#555">Ground Level:</span>
-      <button id="ground-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
-      <input id="ground-offset" type="number" value="120" step="1"
-        style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
-      <button id="ground-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
-      <span style="color:#bbb;margin:0 4px">|</span>
-      <span style="color:#555">Emote Offset:</span>
-      <button id="nudge-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
-      <input id="emote-nudge" type="number" value="35" step="1"
-        style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
-      <button id="nudge-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
-      <span style="color:#bbb;margin:0 4px">|</span>
-      <span style="color:#555">Emote Scale:</span>
-      <button id="scale-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
-      <input id="emote-scale" type="number" value="1.65" step="0.01"
-        style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
-      <button id="scale-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
+    // ---- Settings button ----
+    const settingsBtn = document.createElement('button')
+    settingsBtn.id = 'settings-btn'
+    settingsBtn.textContent = '⚙ Settings'
+    settingsBtn.style.cssText = `
+      position: fixed; top: 10px; right: 10px;
+      padding: 6px 14px; font-family: Arial; font-size: 13px;
+      background: rgba(255,255,255,0.92); border: 1px solid #ccc;
+      border-radius: 8px; cursor: pointer; z-index: 9999;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     `
-    document.body.appendChild(tunerDiv)
+    document.body.appendChild(settingsBtn)
 
-    // Ground level — moves ground line, snaps player, keeps emoteNudge in sync
-    this.groundOffset = 120  // px from bottom of screen
-    const groundInput = document.getElementById('ground-offset')
+    // ---- Panel ----
+    const panel = document.createElement('div')
+    panel.id = 'settings-panel'
+    panel.style.cssText = `
+      position: fixed; top: 44px; right: 10px;
+      background: rgba(255,255,255,0.97); border: 1px solid #ddd;
+      border-radius: 10px; padding: 14px 18px;
+      font-family: Arial; font-size: 13px; z-index: 9998;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      display: none; flex-direction: column; gap: 10px; min-width: 260px;
+    `
+    document.body.appendChild(panel)
 
-    const applyGroundOffset = (val) => {
-      this.groundOffset = val
-      groundInput.value = val
-      this.groundY = this.scale.height - this.groundOffset
-      this.groundLine.setY(this.groundY)
-      if (this.player.grounded) {
-        this.player.y = this.groundY
-      }
-      // Log all current values for easy copy
-      console.log(`Ground offset: ${this.groundOffset} | emoteNudge: ${this.emoteNudge} | emoteScale: ${this.emoteScale}`)
+    settingsBtn.addEventListener('click', () => {
+      panel.style.display = panel.style.display === 'none' ? 'flex' : 'none'
+    })
+
+    // ---- Helper: build a labeled +/- row ----
+    const makeRow = (label, desc, getValue, setValue, step, onChange) => {
+      const row = document.createElement('div')
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;'
+
+      const lbl = document.createElement('div')
+      lbl.style.cssText = 'flex:1;'
+      lbl.innerHTML = `<div style="font-weight:bold;color:#333">${label}</div><div style="color:#999;font-size:11px">${desc}</div>`
+
+      const btn1 = document.createElement('button')
+      btn1.textContent = '−'
+      btn1.style.cssText = 'width:24px;height:24px;cursor:pointer;font-size:15px;border-radius:4px;border:1px solid #ccc'
+
+      const inp = document.createElement('input')
+      inp.type = 'number'
+      inp.value = getValue()
+      inp.step = step
+      inp.style.cssText = 'width:60px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px'
+
+      const btn2 = document.createElement('button')
+      btn2.textContent = '+'
+      btn2.style.cssText = 'width:24px;height:24px;cursor:pointer;font-size:15px;border-radius:4px;border:1px solid #ccc'
+
+      btn1.addEventListener('click', () => {
+        setValue(parseFloat((getValue() - parseFloat(step)).toFixed(3)))
+        inp.value = getValue()
+        onChange()
+      })
+      btn2.addEventListener('click', () => {
+        setValue(parseFloat((getValue() + parseFloat(step)).toFixed(3)))
+        inp.value = getValue()
+        onChange()
+      })
+      inp.addEventListener('change', e => {
+        setValue(parseFloat(e.target.value) || 0)
+        onChange()
+      })
+
+      row.append(lbl, btn1, inp, btn2)
+      return row
     }
 
-    document.getElementById('ground-down').addEventListener('click', () => applyGroundOffset(this.groundOffset - 1))
-    document.getElementById('ground-up').addEventListener('click',   () => applyGroundOffset(this.groundOffset + 1))
-    groundInput.addEventListener('change', (e) => applyGroundOffset(parseFloat(e.target.value) || 120))
+    const sep = () => {
+      const d = document.createElement('div')
+      d.style.cssText = 'border-top:1px solid #eee;margin:2px 0'
+      return d
+    }
 
-    const nudgeInput = document.getElementById('emote-nudge')
-    const scaleInput = document.getElementById('emote-scale')
+    // ---- Ground Level ----
+    panel.appendChild(makeRow(
+      'Ground Level', 'px from screen bottom — moves baseline & character feet',
+      () => this.groundOffset,
+      v => {
+        this.groundOffset = v
+        this.groundY = this.scale.height - this.groundOffset
+        this.groundLine.setY(this.groundY)
+        if (this.player.grounded) this.player.y = this.groundY
+        console.log(`Ground: ${this.groundOffset} | EmoteNudge: ${this.emoteNudge} | EmoteScale: ${this.emoteScale}`)
+      },
+      1, () => {}
+    ))
 
-    document.getElementById('nudge-down').addEventListener('click', () => {
-      this.emoteNudge = parseFloat((this.emoteNudge - 1).toFixed(1))
-      nudgeInput.value = this.emoteNudge
-    })
-    document.getElementById('nudge-up').addEventListener('click', () => {
-      this.emoteNudge = parseFloat((this.emoteNudge + 1).toFixed(1))
-      nudgeInput.value = this.emoteNudge
-    })
-    nudgeInput.addEventListener('change', (e) => {
-      this.emoteNudge = parseFloat(e.target.value) || 0
-    })
+    panel.appendChild(sep())
 
-    document.getElementById('scale-down').addEventListener('click', () => {
-      this.emoteScale = parseFloat((this.emoteScale - 0.01).toFixed(2))
-      scaleInput.value = this.emoteScale.toFixed(2)
-    })
-    document.getElementById('scale-up').addEventListener('click', () => {
-      this.emoteScale = parseFloat((this.emoteScale + 0.01).toFixed(2))
-      scaleInput.value = this.emoteScale.toFixed(2)
-    })
-    scaleInput.addEventListener('change', (e) => {
-      this.emoteScale = parseFloat(e.target.value) || 1
-    })
+    // ---- Emote Offset ----
+    panel.appendChild(makeRow(
+      'Emote Offset', 'vertical nudge for emote sprites (laugh, cry, angry…)',
+      () => this.emoteNudge,
+      v => { this.emoteNudge = v },
+      1, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- Emote Scale ----
+    panel.appendChild(makeRow(
+      'Emote Scale', 'size multiplier for emote sprites',
+      () => this.emoteScale,
+      v => { this.emoteScale = v },
+      0.01, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- BG Position X ----
+    panel.appendChild(makeRow(
+      'BG Position X', 'horizontal focus of background image (0=left, 100=right)',
+      () => window._bgPosX ?? 50,
+      v => { window._bgPosX = v; window._applyBg && window._applyBg() },
+      1, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- BG Position Y ----
+    panel.appendChild(makeRow(
+      'BG Position Y', 'vertical focus of background image (0=top, 100=bottom)',
+      () => window._bgPosY ?? 50,
+      v => { window._bgPosY = v; window._applyBg && window._applyBg() },
+      1, () => {}
+    ))
+
+    panel.appendChild(sep())
+
+    // ---- BG Size ----
+    panel.appendChild(makeRow(
+      'BG Size %', 'zoom level of background image (100=fit, higher=zoom in)',
+      () => window._bgSize ?? 100,
+      v => { window._bgSize = v; window._applyBg && window._applyBg() },
+      5, () => {}
+    ))
 
     // =================================================
     // UI
@@ -631,6 +715,21 @@ class MainScene extends Phaser.Scene {
 
     this.nameText.setPosition(this.player.x, this.player.y - 165)
 
+    // =================================================
+    // UFO ANIMATION
+    // =================================================
+
+    this.ufoTime += delta * 0.001
+    // Slow horizontal drift — loops across screen width
+    const ufoScreenX = ((this.ufoTime * 28) % (this.scale.width + 200)) - 100
+    // Gentle vertical float using sine wave
+    const ufoScreenY = 160 + Math.sin(this.ufoTime * 0.6) * 18
+    // Tiny rotation wobble
+    const ufoRotation = Math.sin(this.ufoTime * 1.1) * 0.04
+
+    this.ufo.setPosition(ufoScreenX, ufoScreenY)
+    this.ufo.setRotation(ufoRotation)
+
     for (const id in this.remotePlayers) {
       const remote = this.remotePlayers[id]
       this.renderCharacter(remote.graphics, remote.sprite, remote, remote.color, false)
@@ -765,82 +864,20 @@ document.body.style.overflow = 'hidden'
 document.body.appendChild(_bgDiv)
 
 // -------------------------------------------------
-// BG TUNER — adjust position & size of background image
-// Values: posX%, posY%, size%
+// BG state — controlled via Settings panel in-game
 // -------------------------------------------------
 
-let _bgPosX = 50   // horizontal focus (0=left, 100=right)
-let _bgPosY = 50   // vertical focus  (0=top,  100=bottom)
-let _bgSize = 100  // zoom/size %     (100=cover, higher=zoom in)
+window._bgPosX = 50
+window._bgPosY = 50
+window._bgSize = 100
 
-function _applyBg() {
+window._applyBg = function() {
   _bgDiv.style.backgroundImage = `url('assets/background.png')`
   _bgDiv.style.backgroundRepeat = 'no-repeat'
-  _bgDiv.style.backgroundSize = `${_bgSize}%`
-  _bgDiv.style.backgroundPosition = `${_bgPosX}% ${_bgPosY}%`
+  _bgDiv.style.backgroundSize = `${window._bgSize}%`
+  _bgDiv.style.backgroundPosition = `${window._bgPosX}% ${window._bgPosY}%`
 }
-_applyBg()
-
-// Inject tuner UI
-const _bgTuner = document.createElement('div')
-_bgTuner.id = 'bg-tuner'
-_bgTuner.style.cssText = `
-  position: fixed; bottom: 16px; left: 50%;
-  transform: translateX(-50%);
-  display: flex; gap: 20px; align-items: center;
-  background: rgba(0,0,0,0.7); color: #fff;
-  padding: 8px 18px; border-radius: 10px;
-  font-family: Arial; font-size: 13px; z-index: 9999;
-`
-
-function _makeControl(label, getVal, setVal, step, onchange) {
-  const wrap = document.createElement('div')
-  wrap.style.cssText = 'display:flex;align-items:center;gap:6px'
-  const lbl = document.createElement('span')
-  lbl.textContent = label
-  lbl.style.color = '#aaa'
-  const btn1 = document.createElement('button')
-  btn1.textContent = '-'
-  btn1.style.cssText = 'width:22px;height:22px;cursor:pointer;font-size:13px;border-radius:4px'
-  const inp = document.createElement('input')
-  inp.type = 'number'
-  inp.value = getVal()
-  inp.step = step
-  inp.style.cssText = 'width:58px;text-align:center;font-size:13px;border-radius:4px;border:1px solid #555;background:#222;color:#fff;padding:2px 4px'
-  const btn2 = document.createElement('button')
-  btn2.textContent = '+'
-  btn2.style.cssText = 'width:22px;height:22px;cursor:pointer;font-size:13px;border-radius:4px'
-
-  btn1.addEventListener('click', () => {
-    setVal(parseFloat((getVal() - step).toFixed(2)))
-    inp.value = getVal()
-    onchange()
-  })
-  btn2.addEventListener('click', () => {
-    setVal(parseFloat((getVal() + step).toFixed(2)))
-    inp.value = getVal()
-    onchange()
-  })
-  inp.addEventListener('change', () => {
-    setVal(parseFloat(inp.value) || 0)
-    onchange()
-  })
-
-  wrap.append(lbl, btn1, inp, btn2)
-  return wrap
-}
-
-_bgTuner.appendChild(_makeControl('BG X%',  () => _bgPosX, v => _bgPosX = v, 1, _applyBg))
-const sep1 = document.createElement('span'); sep1.textContent = '|'; sep1.style.color='#555'; _bgTuner.appendChild(sep1)
-_bgTuner.appendChild(_makeControl('BG Y%',  () => _bgPosY, v => _bgPosY = v, 1, _applyBg))
-const sep2 = document.createElement('span'); sep2.textContent = '|'; sep2.style.color='#555'; _bgTuner.appendChild(sep2)
-_bgTuner.appendChild(_makeControl('BG Size%', () => _bgSize, v => _bgSize = v, 5, _applyBg))
-
-// Print current values to console whenever they change
-const _origApplyBg = _applyBg
-window._logBgValues = () => console.log(`BG values → posX: ${_bgPosX}, posY: ${_bgPosY}, size: ${_bgSize}`)
-
-document.body.appendChild(_bgTuner)
+window._applyBg()
 
 console.log("CREATING GAME")
 
