@@ -239,7 +239,7 @@ this.cameras.main.setBounds(
       )
 
     player.animTime +=
-      player.walkCycle
+      player.walkCycle * 0.75
 
     const t = player.animTime
 
@@ -320,118 +320,180 @@ this.cameras.main.setBounds(
     // =================================================
 
     else if (
-      player.pose === 'walk'
-    ) {
+  player.pose === 'walk'
+) {
 
-      const walkPhase =
-        t * 2.8
+  const walkPhase =
+    t * 3.2
 
-      const walk =
-        Math.sin(walkPhase)
+  const cycleL =
+    Math.sin(walkPhase)
 
-      const walk2 =
-        Math.sin(
-          walkPhase + Math.PI
-        )
+  const cycleR =
+    Math.sin(
+      walkPhase + Math.PI
+    )
 
-      const liftL =
-        Math.max(0, walk)
+  // =========================================
+  // BODY WEIGHT TRANSFER
+  // =========================================
 
-      const liftR =
-        Math.max(0, walk2)
+  const hipSway =
+    Math.sin(walkPhase) * 7
 
-      const armSwing =
-        18 + Math.abs(Math.sin(t * 2)) * 3
+  const torsoTilt =
+    Math.sin(walkPhase) * 4
 
-      const shoulderShift =
-        Math.sin(walkPhase * 1.4) * 3
+  const bodyBounce =
+    Math.abs(
+      Math.sin(walkPhase)
+    ) * 10
 
-      graphics.lineBetween(
-        x + shoulderShift,
-        chestY,
-        x - 14 - walk * armSwing,
-        chestY + 18
-      )
+  const hipX =
+    x + hipSway
 
-      graphics.lineBetween(
-        x + shoulderShift,
-        chestY,
-        x + 14 + walk * armSwing,
-        chestY + 18
-      )
+  const dynamicHipY =
+    hipY - bodyBounce
 
-      const leftHipX =
-        x - 2
+  // =========================================
+  // TORSO
+  // =========================================
 
-      const leftKneeX =
-        leftHipX - walk * 10
+  graphics.lineBetween(
+    headX + torsoTilt,
+    neckY - bodyBounce,
+    hipX,
+    dynamicHipY
+  )
 
-      const leftKneeY =
-        hipY + 24 + liftL * 10
+  // =========================================
+  // ARMS
+  // =========================================
 
-      const leftFootX =
-        leftHipX - walk * 24
+  const armSwing = 30
 
-      const leftFootY =
-        feetY - liftL * 18
+  const leftShoulderX =
+    hipX - 2
 
-      graphics.lineBetween(
-        leftHipX,
-        hipY,
-        leftKneeX,
-        leftKneeY
-      )
+  const rightShoulderX =
+    hipX + 2
 
-      graphics.lineBetween(
-        leftKneeX,
-        leftKneeY,
-        leftFootX,
-        leftFootY
-      )
+  graphics.lineBetween(
+    leftShoulderX,
+    chestY,
+    leftShoulderX -
+      cycleR * armSwing,
+    chestY + 22
+  )
 
-      const rightHipX =
-        x + 2
+  graphics.lineBetween(
+    rightShoulderX,
+    chestY,
+    rightShoulderX -
+      cycleL * armSwing,
+    chestY + 22
+  )
 
-      const rightKneeX =
-        rightHipX - walk2 * 10
+  // =========================================
+  // LEFT LEG
+  // =========================================
 
-      const rightKneeY =
-        hipY + 24 + liftR * 10
+  const leftFootLift =
+    Math.max(0, cycleL)
 
-      const rightFootX =
-        rightHipX - walk2 * 24
+  const leftHipX =
+    hipX - 5
 
-      const rightFootY =
-        feetY - liftR * 18
+  const leftFootX =
+    leftHipX -
+    cycleL * 34
 
-      graphics.lineBetween(
-        rightHipX,
-        hipY,
-        rightKneeX,
-        rightKneeY
-      )
+  const leftFootY =
+    feetY -
+    leftFootLift * 24
 
-      graphics.lineBetween(
-        rightKneeX,
-        rightKneeY,
-        rightFootX,
-        rightFootY
-      )
+  const leftKneeX =
+    (leftHipX + leftFootX) / 2 -
+    cycleL * 12
 
-      graphics.lineBetween(
-        leftFootX,
-        leftFootY,
-        leftFootX - 8,
-        leftFootY
-      )
+  const leftKneeY =
+    dynamicHipY +
+    30 +
+    leftFootLift * 18
 
-      graphics.lineBetween(
-        rightFootX,
-        rightFootY,
-        rightFootX + 8,
-        rightFootY
-      )
-    }
+  graphics.lineBetween(
+    leftHipX,
+    dynamicHipY,
+    leftKneeX,
+    leftKneeY
+  )
+
+  graphics.lineBetween(
+    leftKneeX,
+    leftKneeY,
+    leftFootX,
+    leftFootY
+  )
+
+  // =========================================
+  // RIGHT LEG
+  // =========================================
+
+  const rightFootLift =
+    Math.max(0, cycleR)
+
+  const rightHipX =
+    hipX + 5
+
+  const rightFootX =
+    rightHipX -
+    cycleR * 34
+
+  const rightFootY =
+    feetY -
+    rightFootLift * 24
+
+  const rightKneeX =
+    (rightHipX + rightFootX) / 2 -
+    cycleR * 12
+
+  const rightKneeY =
+    dynamicHipY +
+    30 +
+    rightFootLift * 18
+
+  graphics.lineBetween(
+    rightHipX,
+    dynamicHipY,
+    rightKneeX,
+    rightKneeY
+  )
+
+  graphics.lineBetween(
+    rightKneeX,
+    rightKneeY,
+    rightFootX,
+    rightFootY
+  )
+
+  // =========================================
+  // FEET
+  // =========================================
+
+  graphics.lineBetween(
+    leftFootX,
+    leftFootY,
+    leftFootX - 10,
+    leftFootY
+  )
+
+  graphics.lineBetween(
+    rightFootX,
+    rightFootY,
+    rightFootX + 10,
+    rightFootY
+  )
+}
 
     // =================================================
     // JUMP
@@ -892,9 +954,9 @@ this.cameras.main.setBounds(
 
     const dt = delta / 16.666
 
-    const accel = 0.32
+    const accel = 0.24
 
-    const friction = 0.88
+    const friction = 0.82
 
     const maxSpeed = 2
 
