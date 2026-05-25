@@ -265,7 +265,25 @@ class MainScene extends Phaser.Scene {
       this.refreshPathEditor()
     })
 
+// =================================================
+// MUSHROOM NPC
+// =================================================
 
+this.mushroom = this.add.sprite(
+  this.mushroomPath[0].x,
+  this.mushroomPath[0].y,
+  'mushroom-sheet'
+)
+
+this.mushroom
+  .setOrigin(0.5, 1)
+  .setScale(2)
+  .setDepth(8)
+
+this.mushroom.play('mushroom-walk')
+
+this.mushroomPathIndex = 0
+this.mushroomSpeed = 1.2
     // =================================================
     // PLAYER
     // =================================================
@@ -966,7 +984,45 @@ this.pathGraphics.fillCircle(p.x, p.y, 8)
     this.ufo.setPosition(ufoScreenX, ufoScreenY)
     this.ufo.setScale(this.ufoScale)
     this.ufo.setRotation(ufoRotation)
+// =================================================
+// MUSHROOM MOVEMENT
+// =================================================
 
+if (this.mushroomPath.length > 1) {
+
+  const target =
+    this.mushroomPath[
+      (this.mushroomPathIndex + 1) %
+      this.mushroomPath.length
+    ]
+
+  const dx = target.x - this.mushroom.x
+  const dy = target.y - this.mushroom.y
+
+  const dist = Math.sqrt(dx * dx + dy * dy)
+
+  if (dist < 8) {
+
+    this.mushroomPathIndex =
+      (this.mushroomPathIndex + 1) %
+      this.mushroomPath.length
+
+  } else {
+
+    const moveX = (dx / dist) * this.mushroomSpeed
+    const moveY = (dy / dist) * this.mushroomSpeed
+
+    this.mushroom.x += moveX
+    this.mushroom.y += moveY
+
+    // face movement direction
+    if (moveX > 0) {
+      this.mushroom.setScale(2, 2)
+    } else {
+      this.mushroom.setScale(-2, 2)
+    }
+  }
+}
     for (const id in this.remotePlayers) {
       const remote = this.remotePlayers[id]
       this.renderCharacter(remote.graphics, remote.sprite, remote, remote.color, false)
