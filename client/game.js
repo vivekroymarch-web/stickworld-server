@@ -1,4 +1,4 @@
-cat > /mnt/user-data/outputs/game.js << 'ENDOFFILE'
+
 console.log("GAME FILE LOADED")
 
 // =================================================
