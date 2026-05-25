@@ -1036,9 +1036,9 @@ if (this.mushroomPath.length > 1) {
 
     // face movement direction
     if (moveX > 0) {
-      this.mushroom.setScale(2, 2)
-    } else {
       this.mushroom.setScale(-2, 2)
+    } else {
+      this.mushroom.setScale(2, 2)
     }
   }
 }
