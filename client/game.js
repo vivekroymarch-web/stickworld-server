@@ -82,8 +82,6 @@ class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('bg', 'assets/background.png')
-
     this.load.spritesheet(
       'stickman-idle-sheet',
       'assets/stickman/stickman_idle_sheet.png',
@@ -145,20 +143,37 @@ class MainScene extends Phaser.Scene {
     // BACKGROUND
     // =================================================
 
-    this.bgSprite = this.add.image(0, 0, 'bg')
-      .setOrigin(0, 0)
-      .setDepth(-1)
-      .setScrollFactor(0.3)
+    // Inject a CSS background div — reliable across all image sizes
+    // Covers from top of screen down to the ground line only
+    const groundPercent = ((this.groundY) / this.scale.height * 100).toFixed(2)
+    const bgDiv = document.createElement('div')
+    bgDiv.id = 'game-bg'
+    bgDiv.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: ${groundPercent}%;
+      background: url('assets/background.png') center center / cover no-repeat;
+      z-index: 0;
+      pointer-events: none;
+    `
+    document.body.appendChild(bgDiv)
 
-    // Scale to cover full screen height, maintain aspect ratio
-    const scaleX = (WORLD_WIDTH) / this.bgSprite.width
-    const scaleY = this.scale.height / this.bgSprite.height
-    const bgScale = Math.max(scaleX, scaleY)
-    this.bgSprite.setScale(bgScale)
+    // Make Phaser canvas transparent so the CSS bg shows through
+    this.game.canvas.style.background = 'transparent'
+    this.renderer.gl
+      ? this.renderer.gl.clearColor(0, 0, 0, 0)
+      : (this.game.canvas.style.backgroundColor = 'transparent')
 
     // =================================================
     // GROUND
     // =================================================
+
+    // Fill below ground with a solid color (grass/earth tone)
+    this.add.rectangle(0, this.groundY, WORLD_WIDTH, this.scale.height - this.groundY + 10, 0x8BC34A)
+      .setOrigin(0, 0)
+      .setDepth(-1)
 
     this.add.rectangle(WORLD_WIDTH / 2, this.groundY, WORLD_WIDTH, 2, 0xcccccc)
 
@@ -742,7 +757,8 @@ export const gameConfig = {
   width: window.innerWidth,
   height: window.innerHeight,
   parent: 'app',
-  backgroundColor: '#87CEEB',
+  transparent: true,
+  backgroundColor: 'transparent',
   physics: {
     default: 'arcade',
     arcade: { debug: false },
