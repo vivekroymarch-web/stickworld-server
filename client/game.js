@@ -198,8 +198,8 @@ class MainScene extends Phaser.Scene {
     .setDepth(999)
 
     this.pathHelp = this.add.text(
-      20,
-      180,
+      380,
+      90,
       'P = toggle path editor\nLEFT CLICK = add point\nDRAG = move point\nHOLD X + CLICK = delete point',
       {
         fontFamily: 'Arial',
