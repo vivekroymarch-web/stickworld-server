@@ -510,6 +510,24 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
 
   return el
 }
+      const makeSectionTitle = (title) => {
+
+  const el = document.createElement('div')
+
+  el.style.cssText = `
+    margin-top: 10px;
+    padding: 6px 8px;
+    background: #f2f2f2;
+    border-radius: 6px;
+    font-weight: bold;
+    color: #333;
+    font-size: 13px;
+  `
+
+  el.textContent = title
+
+  return el
+}
       const d = document.createElement('div')
       d.style.cssText = 'border-top:1px solid #eee;margin:2px 0'
       return d
@@ -798,7 +816,7 @@ this.mushroomPath.forEach((p, index) => {
       { key: 'stickman-angry',            sheet: 'stickman-angry-sheet',            frames: 16, frameRate: 8  },
       { key: 'stickman-moderately_angry', sheet: 'stickman-moderately-angry-sheet', frames: 16, frameRate: 8  },
       // Mushroom character — 10 frames across a 640×64 sheet (64×64 per frame)
-      { key: 'mushroom-walk',             sheet: 'mushroom-sheet',                  frames: 10, frameRate: 10 },
+      { key: 'mushroom-walk',             sheet: 'mushroom-sheet',                  frames: 8, frameRate: 10 },
     ]
 
     specs.forEach(spec => {
