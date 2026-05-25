@@ -492,7 +492,13 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
     }
 
     const sep = () => {
-      const makeSectionTitle = (title) => {
+  const d = document.createElement('div')
+  d.style.cssText =
+    'border-top:1px solid #eee;margin:2px 0'
+  return d
+}
+
+const makeSectionTitle = (title) => {
 
   const el = document.createElement('div')
 
@@ -510,28 +516,6 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
 
   return el
 }
-      const makeSectionTitle = (title) => {
-
-  const el = document.createElement('div')
-
-  el.style.cssText = `
-    margin-top: 10px;
-    padding: 6px 8px;
-    background: #f2f2f2;
-    border-radius: 6px;
-    font-weight: bold;
-    color: #333;
-    font-size: 13px;
-  `
-
-  el.textContent = title
-
-  return el
-}
-      const d = document.createElement('div')
-      d.style.cssText = 'border-top:1px solid #eee;margin:2px 0'
-      return d
-    }
 
     // ---- Ground Level ----
     panel.appendChild(makeRow(
