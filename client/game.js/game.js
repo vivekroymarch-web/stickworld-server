@@ -1,4 +1,4 @@
-
+console.log("GAME FILE LOADED")
 
 class MainScene extends Phaser.Scene {
 
@@ -1370,7 +1370,7 @@ function drawIdlePose(
     feetY
   )
 }
-
+console.log("CREATING GAME")
 export const gameConfig = {
 
   type: Phaser.AUTO,
