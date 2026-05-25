@@ -142,41 +142,7 @@ class MainScene extends Phaser.Scene {
     // =================================================
     // BACKGROUND
     // =================================================
-
-    // Sky gradient background (solid color until image is confirmed working)
-    this.add.rectangle(0, 0, WORLD_WIDTH, this.groundY, 0x87CEEB).setOrigin(0, 0).setDepth(-2)
-
-    // Try loading background image via DOM — works with any image size
-    const bgImg = new Image()
-    bgImg.onload = () => {
-      // Image confirmed available — inject CSS div behind canvas
-      let bgDiv = document.getElementById('game-bg')
-      if (!bgDiv) {
-        bgDiv = document.createElement('div')
-        bgDiv.id = 'game-bg'
-        document.body.insertBefore(bgDiv, document.body.firstChild)
-      }
-      const groundPercent = (this.groundY / this.scale.height * 100).toFixed(2)
-      bgDiv.style.cssText = `
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%;
-        height: ${groundPercent}%;
-        background: url('assets/background.png') center center / cover no-repeat;
-        z-index: -1;
-        pointer-events: none;
-      `
-      // Make canvas transparent only after image is confirmed loaded
-      this.game.canvas.style.background = 'transparent'
-      this.game.canvas.style.backgroundColor = 'transparent'
-      if (this.renderer.gl) {
-        this.renderer.gl.clearColor(0, 0, 0, 0)
-      }
-    }
-    bgImg.onerror = () => {
-      console.warn('background.png not found — using solid sky color fallback')
-    }
-    bgImg.src = 'assets/background.png'
+    // Handled by CSS div injected at bottom of file before Phaser starts
 
     // =================================================
     // GROUND
@@ -761,6 +727,24 @@ class MainScene extends Phaser.Scene {
     remote.label.setPosition(remote.x, remote.y - 165)
   }
 }
+
+// =================================================
+// BACKGROUND DIV — injected before Phaser starts
+// =================================================
+
+const _bgDiv = document.createElement('div')
+_bgDiv.id = 'game-bg'
+_bgDiv.style.cssText = `
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: url('assets/background.png') center center / cover no-repeat;
+  z-index: -1;
+  pointer-events: none;
+`
+document.body.style.margin = '0'
+document.body.style.overflow = 'hidden'
+document.body.appendChild(_bgDiv)
 
 console.log("CREATING GAME")
 
