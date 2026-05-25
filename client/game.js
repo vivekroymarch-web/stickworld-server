@@ -148,7 +148,7 @@ class MainScene extends Phaser.Scene {
     // GROUND
     // =================================================
 
-    this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0)
+    this.groundLine = this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0)
 
 
     // =================================================
@@ -219,6 +219,12 @@ class MainScene extends Phaser.Scene {
     tunerDiv.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:16px;align-items:center;background:rgba(255,255,255,0.9);padding:6px 14px;border-radius:8px;font-family:Arial;font-size:13px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15)'
 
     tunerDiv.innerHTML = `
+      <span style="color:#555">Ground Level:</span>
+      <button id="ground-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
+      <input id="ground-offset" type="number" value="120" step="1"
+        style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
+      <button id="ground-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
+      <span style="color:#bbb;margin:0 4px">|</span>
       <span style="color:#555">Emote Offset:</span>
       <button id="nudge-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
       <input id="emote-nudge" type="number" value="35" step="1"
@@ -232,6 +238,26 @@ class MainScene extends Phaser.Scene {
       <button id="scale-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
     `
     document.body.appendChild(tunerDiv)
+
+    // Ground level — moves ground line, snaps player, keeps emoteNudge in sync
+    this.groundOffset = 120  // px from bottom of screen
+    const groundInput = document.getElementById('ground-offset')
+
+    const applyGroundOffset = (val) => {
+      this.groundOffset = val
+      groundInput.value = val
+      this.groundY = this.scale.height - this.groundOffset
+      this.groundLine.setY(this.groundY)
+      if (this.player.grounded) {
+        this.player.y = this.groundY
+      }
+      // Log all current values for easy copy
+      console.log(`Ground offset: ${this.groundOffset} | emoteNudge: ${this.emoteNudge} | emoteScale: ${this.emoteScale}`)
+    }
+
+    document.getElementById('ground-down').addEventListener('click', () => applyGroundOffset(this.groundOffset - 1))
+    document.getElementById('ground-up').addEventListener('click',   () => applyGroundOffset(this.groundOffset + 1))
+    groundInput.addEventListener('change', (e) => applyGroundOffset(parseFloat(e.target.value) || 120))
 
     const nudgeInput = document.getElementById('emote-nudge')
     const scaleInput = document.getElementById('emote-scale')
