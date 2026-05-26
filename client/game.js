@@ -27,6 +27,7 @@ function drawLine(graphics, x1, y1, x2, y2) {
 const SPRITE_FRAME_SIZE = 256
 const SPRITE_FEET_Y = 228
 const STICKMAN_SPRITE_SCALE = 0.55
+const WORLD_WIDTH = WORLD_WIDTH
 const SPRITE_POSES = new Set([
   'idle',
   'walk',
@@ -158,7 +159,12 @@ this.load.spritesheet(
     this.game.canvas.style.imageRendering =
   'pixelated'
 
-    this.groundY = this.scale.height - 120
+    this.physics.world.setBounds(
+  0,
+  0,
+  WORLD_WIDTH,
+  this.scale.height
+)
 
     // =================================================
     // BACKGROUND
@@ -166,7 +172,7 @@ this.load.spritesheet(
 
     this.add.rectangle(
       0, 0,
-      5000,
+      WORLD_WIDTH,
       this.scale.height,
       0xfafafa
     ).setOrigin(0)
@@ -178,7 +184,7 @@ this.load.spritesheet(
     this.add.rectangle(
       0,
       this.groundY,
-      5000,
+      WORLD_WIDTH,
       120,
       0xe8e8e8
     ).setOrigin(0)
@@ -186,7 +192,7 @@ this.load.spritesheet(
     this.add.rectangle(
       0,
       this.groundY,
-      5000,
+      WORLD_WIDTH,
       2,
       0xcccccc
     ).setOrigin(0)
@@ -293,7 +299,12 @@ this.cameras.main.startFollow(
   0.08
 )
     
-    this.cameras.main.setBounds(0, 0, 5000, this.scale.height)
+    this.cameras.main.setBounds(
+  0,
+  0,
+  WORLD_WIDTH,
+  this.scale.height
+)
 
     // =================================================
     // NETWORK
@@ -727,13 +738,13 @@ drawSpriteCryTears(
     this.player.vx = Phaser.Math.Clamp(this.player.vx, -maxSpeed, maxSpeed)
     this.player.vx *= friction
 
-    const WORLD_WIDTH = 5000
+    
    this.player.x += this.player.vx * dt * 4
 
-this.player.x = Phaser.Math.Clamp(
+  this.player.x = Phaser.Math.Clamp(
   this.player.x,
   40,
-  5000 - 40
+  WORLD_WIDTH - 40
 )
   
 
