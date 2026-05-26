@@ -288,7 +288,7 @@ moderatelyAngry:
     
 
 this.cameras.main.startFollow(
-  this.cameraTarget,
+  this.playerSprite,
   true,
   0.08,
   0.08
