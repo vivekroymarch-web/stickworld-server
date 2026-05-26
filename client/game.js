@@ -491,11 +491,22 @@ if (
   scale = 0.8
 }
 
+let offsetY = 0
+
+if (
+  player.pose === 'laugh' ||
+  player.pose === 'heavy_laugh' ||
+  player.pose === 'angry' ||
+  player.pose === 'moderately_angry'
+) {
+  offsetY = 10
+}
+
 sprite
   .setVisible(true)
   .setPosition(
     player.x,
-    player.y
+    player.y + offsetY
   )
   .setTint()
   .setScale(
