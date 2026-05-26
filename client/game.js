@@ -203,7 +203,7 @@ this.load.spritesheet(
     // =================================================
 
     this.player = {
-      x: this.scale.width / 2,
+      x: 300,
       y: this.groundY,
       vx: 0,
       vy: 0,
@@ -296,8 +296,12 @@ moderatelyAngry:
 this.cameras.main.startFollow(
   this.cameraTarget,
   true,
-  0.08,
-  0.08
+  0.16,
+  0.16
+)
+this.cameras.main.setDeadzone(
+  200,
+  120
 )
     
     this.cameras.main.setBounds(
