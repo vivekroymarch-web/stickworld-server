@@ -24,6 +24,11 @@ function drawLine(graphics, x1, y1, x2, y2) {
   graphics.lineBetween(x1, y1, x2, y2)
 }
 
+const SPRITE_FRAME_SIZE = 240
+const SPRITE_FEET_Y = 218
+const STICKMAN_SPRITE_SCALE = 0.78
+const SPRITE_POSES = new Set(['walk', 'wave', 'laugh', 'cry'])
+
 // =================================================
 // IDLE POSE
 // =================================================
@@ -74,7 +79,31 @@ class MainScene extends Phaser.Scene {
     this.name = `Guest ${Math.floor(Math.random() * 90) + 10}`
   }
 
-  preload() {}
+  preload() {
+    this.load.spritesheet(
+      'stickman-walk-sheet',
+      'assets/stickman/stickman_walk_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
+
+    this.load.spritesheet(
+      'stickman-wave-sheet',
+      'assets/stickman/stickman_wave_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
+
+    this.load.spritesheet(
+      'stickman-laugh-sheet',
+      'assets/stickman/stickman_laugh_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
+
+    this.load.spritesheet(
+      'stickman-cry-sheet',
+      'assets/stickman/stickman_cry_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
+  }
 
   create() {
     console.log("CREATE RUNNING")
@@ -138,6 +167,8 @@ class MainScene extends Phaser.Scene {
     // =================================================
 
     this.playerGraphics = this.add.graphics()
+    this.playerSprite = this.createCharacterSprite()
+    this.createSpriteAnimations()
 
     // =================================================
     // INPUT
@@ -213,6 +244,87 @@ class MainScene extends Phaser.Scene {
   // =================================================
   // DRAW CHARACTER — main dispatcher
   // =================================================
+
+  createCharacterSprite() {
+    return this.add.sprite(0, 0, 'stickman-walk-sheet')
+      .setOrigin(0.5, SPRITE_FEET_Y / SPRITE_FRAME_SIZE)
+      .setScale(STICKMAN_SPRITE_SCALE)
+      .setVisible(false)
+  }
+
+  createSpriteAnimations() {
+    const specs = [
+      { key: 'stickman-walk',  sheet: 'stickman-walk-sheet',  frames: 12, frameRate: 14 },
+      { key: 'stickman-wave',  sheet: 'stickman-wave-sheet',  frames: 12, frameRate: 10 },
+      { key: 'stickman-laugh', sheet: 'stickman-laugh-sheet', frames: 10, frameRate: 12 },
+      { key: 'stickman-cry',   sheet: 'stickman-cry-sheet',   frames: 12, frameRate: 9  },
+    ]
+
+    for (const spec of specs) {
+      if (this.anims.exists(spec.key)) continue
+
+      this.anims.create({
+        key: spec.key,
+        frames: this.anims.generateFrameNumbers(spec.sheet, {
+          start: 0,
+          end: spec.frames - 1,
+        }),
+        frameRate: spec.frameRate,
+        repeat: -1,
+      })
+    }
+  }
+
+  renderCharacter(graphics, sprite, player, color, isLocal = false) {
+    if (SPRITE_POSES.has(player.pose)) {
+      this.drawSpriteCharacter(graphics, sprite, player, color)
+      return
+    }
+
+    sprite.setVisible(false)
+    this.drawCharacter(graphics, player, color, isLocal)
+  }
+
+  drawSpriteCharacter(graphics, sprite, player, color) {
+    graphics.clear()
+
+    const key = `stickman-${player.pose}`
+    sprite
+      .setVisible(true)
+      .setPosition(player.x, player.y)
+      .setTint(color)
+      .setScale((player.facing || 1) * STICKMAN_SPRITE_SCALE, STICKMAN_SPRITE_SCALE)
+
+    if (sprite.anims.currentAnim?.key !== key) {
+      sprite.play(key)
+    }
+
+    sprite.anims.timeScale = player.pose === 'walk'
+      ? Phaser.Math.Clamp(Math.abs(player.vx) / 1.8, 0.7, 1.3)
+      : 1
+
+    if (player.pose === 'cry') {
+      this.drawSpriteCryTears(graphics, player)
+    }
+  }
+
+  drawSpriteCryTears(graphics, player) {
+    const phase = (this.time.now / 900) % 1
+    const mirror = player.facing || 1
+    const headX = player.x + mirror * 8 * STICKMAN_SPRITE_SCALE
+    const headY = player.y - 127 * STICKMAN_SPRITE_SCALE
+
+    graphics.fillStyle(0x4aa3ff, 0.88)
+
+    for (let i = 0; i < 2; i++) {
+      const fall = (phase + i * 0.5) % 1
+      const tearX = headX + mirror * (i === 0 ? -7 : 7) * STICKMAN_SPRITE_SCALE
+      const tearY = headY + (14 + fall * 52) * STICKMAN_SPRITE_SCALE
+      const radius = Math.max(1, 3.5 - fall * 2.4)
+
+      graphics.fillCircle(tearX, tearY, radius)
+    }
+  }
 
   drawCharacter(graphics, player, color, isLocal = false) {
     graphics.clear()
@@ -694,7 +806,7 @@ class MainScene extends Phaser.Scene {
       this.player.pose = 'idle'
     }
 
-    this.drawCharacter(this.playerGraphics, this.player, this.playerColor, true)
+    this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
 
     this.nameText.setPosition(this.player.x, this.player.y - 165)
 
@@ -705,7 +817,7 @@ class MainScene extends Phaser.Scene {
 
     for (const id in this.remotePlayers) {
       const remote = this.remotePlayers[id]
-      this.drawCharacter(remote.graphics, remote, remote.color, false)
+      this.renderCharacter(remote.graphics, remote.sprite, remote, remote.color, false)
       remote.label.setPosition(remote.x, remote.y - 165)
     }
   }
@@ -778,6 +890,7 @@ class MainScene extends Phaser.Scene {
     if (this.remotePlayers[data.id]) return
 
     const graphics = this.add.graphics()
+    const sprite   = this.createCharacterSprite()
     const label    = this.add.text(
       data.x, data.y - 165, data.name,
       { fontFamily: 'Arial', fontSize: '18px', color: '#111111' }
@@ -785,6 +898,7 @@ class MainScene extends Phaser.Scene {
 
     this.remotePlayers[data.id] = {
       graphics,
+      sprite,
       label,
       x:          data.x ?? this.scale.width / 2,
       y:          data.y ?? this.groundY,
@@ -823,7 +937,7 @@ class MainScene extends Phaser.Scene {
     remote.color      = data.color || remote.color || 0x0066ff
 
     remote.label.setText(remote.name)
-    this.drawCharacter(remote.graphics, remote, remote.color, false)
+    this.renderCharacter(remote.graphics, remote.sprite, remote, remote.color, false)
     remote.label.setPosition(remote.x, remote.y - 165)
   }
 }
