@@ -488,7 +488,7 @@ if (
   player.pose === 'angry' ||
   player.pose === 'moderately_angry'
 ) {
-  scale = 0.68
+  scale = 0.72
 }
 
 sprite
