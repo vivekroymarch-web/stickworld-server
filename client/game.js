@@ -269,7 +269,7 @@ moderatelyAngry:
       20, 20,
       'Players Online: 1',
       { fontFamily: 'Arial', fontSize: '20px', color: '#111111' }
-    )
+    ).setScrollFactor(0)
 
     this.controlsText = this.add.text(
       20, 50,
@@ -277,9 +277,21 @@ moderatelyAngry:
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
-    this.cameras.main.startFollow(
-      { x: this.player.x, y: this.player.y },
-      true, 0.08, 0.08
+    this.cameraTarget = this.add.rectangle(
+  this.player.x,
+  this.player.y,
+  1,
+  1,
+  0x000000,
+  0
+)
+
+this.cameras.main.startFollow(
+  this.cameraTarget,
+  true,
+  0.08,
+  0.08
+)
     )
     this.cameras.main.setBounds(0, 0, 5000, this.scale.height)
 
@@ -733,6 +745,10 @@ this.player.x = Phaser.Math.Clamp(
 
     this.player.vy += 0.32 * dt
     this.player.y  += this.player.vy * dt * 3
+    this.cameraTarget.setPosition(
+  this.player.x,
+  this.player.y
+)
 
     if (this.player.y >= this.groundY) {
       if (!this.player.grounded && Math.abs(this.player.vy) > 3) {
@@ -805,10 +821,7 @@ else {
 
     this.nameText.setPosition(this.player.x, this.player.y - 165)
 
-    this.cameras.main.startFollow(
-      { x: this.player.x, y: this.player.y },
-      true, 0.08, 0.08
-    )
+    
 
     for (const id in this.remotePlayers) {
       const remote = this.remotePlayers[id]
