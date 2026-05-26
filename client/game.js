@@ -488,7 +488,7 @@ if (
   player.pose === 'angry' ||
   player.pose === 'moderately_angry'
 ) {
-  scale = 0.8
+  scale = 0.85
 }
 
 let offsetY = 0
