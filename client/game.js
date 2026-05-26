@@ -174,7 +174,7 @@ this.load.spritesheet(
 
     this.add.rectangle(
       0, 0,
-      this.scale.width * 4,
+      5000,
       this.scale.height,
       0xfafafa
     ).setOrigin(0)
@@ -186,7 +186,7 @@ this.load.spritesheet(
     this.add.rectangle(
       0,
       this.groundY,
-      this.scale.width * 4,
+      5000,
       120,
       0xe8e8e8
     ).setOrigin(0)
@@ -194,7 +194,7 @@ this.load.spritesheet(
     this.add.rectangle(
       0,
       this.groundY,
-      this.scale.width * 4,
+      5000,
       2,
       0xcccccc
     ).setOrigin(0)
@@ -291,7 +291,7 @@ moderatelyAngry:
       { x: this.player.x, y: this.player.y },
       true, 0.08, 0.08
     )
-    this.cameras.main.setBounds(0, 0, this.scale.width * 4, this.scale.height)
+    this.cameras.main.setBounds(0, 0, 5000, this.scale.height)
 
     // =================================================
     // NETWORK
@@ -741,8 +741,15 @@ drawSpriteCryTears(
     this.player.vx = Phaser.Math.Clamp(this.player.vx, -maxSpeed, maxSpeed)
     this.player.vx *= friction
 
-    this.player.x += this.player.vx * dt * 4
-    this.player.x  = Phaser.Math.Clamp(this.player.x, 40, this.scale.width * 4 - 40)
+    const WORLD_WIDTH = 5000
+
+this.player.x += this.player.vx * dt * 4
+
+this.player.x = Phaser.Math.Clamp(
+  this.player.x,
+  40,
+  WORLD_WIDTH - 40
+)
 
     if (this.keys.jump.isDown && this.player.grounded) {
       this.player.vy = running ? -9 : -7
