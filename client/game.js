@@ -27,7 +27,7 @@ function drawLine(graphics, x1, y1, x2, y2) {
 const SPRITE_FRAME_SIZE = 256
 const SPRITE_FEET_Y = 228
 const STICKMAN_SPRITE_SCALE = 0.55
-const WORLD_WIDTH = WORLD_WIDTH
+const WORLD_WIDTH = 5000
 const SPRITE_POSES = new Set([
   'idle',
   'walk',
@@ -156,6 +156,7 @@ this.load.spritesheet(
 
   create() {
     console.log("CREATE RUNNING")
+    this.groundY = this.scale.height - 120
     this.game.canvas.style.imageRendering =
   'pixelated'
 
