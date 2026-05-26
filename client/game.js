@@ -75,15 +75,7 @@ class MainScene extends Phaser.Scene {
 
     this.remotePlayers = {}
 
-    this.colorMap = {
-      red: 0xff0000,
-      orange: 0xff8800,
-      green: 0x00cc44,
-      purple: 0x9933cc,
-    }
-
-    this.playerColorName = 'red'
-    this.playerColor = this.colorMap[this.playerColorName]
+    this.playerColor = 0xffffff
 
     this.name = `Guest ${Math.floor(Math.random() * 90) + 10}`
   }
@@ -236,7 +228,7 @@ this.load.spritesheet(
       left:  Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
       jump:  Phaser.Input.Keyboard.KeyCodes.W,
-      wave:  Phaser.Input.Keyboard.KeyCodes.Q,
+      
       laugh: Phaser.Input.Keyboard.KeyCodes.E,
       point: Phaser.Input.Keyboard.KeyCodes.R,
       cry:   Phaser.Input.Keyboard.KeyCodes.F,
@@ -252,17 +244,15 @@ moderatelyAngry:
     })
 
     this.nameInput   = document.getElementById('player-name')
-    this.colorSelect = document.getElementById('player-color')
+    
+
 
     if (this.nameInput) {
       this.nameInput.value = this.name
       this.nameInput.addEventListener('change', () => this.handlePlayerNameChange())
     }
 
-    if (this.colorSelect) {
-      this.colorSelect.value = this.playerColorName
-      this.colorSelect.addEventListener('change', () => this.handlePlayerColorChange())
-    }
+  
 
     // =================================================
     // UI
@@ -283,7 +273,7 @@ moderatelyAngry:
 
     this.controlsText = this.add.text(
       20, 50,
-      'A/D move · W jump · Q wave · E laugh · Z heavy laugh · F cry · X angry · C moderate angry · R point',
+      'A/D move · W jump · E laugh · Z heavy laugh · F cry · X angry · C moderate angry · R point',
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
@@ -488,19 +478,30 @@ drawSpriteCharacter(
 
   const key = poseMap[player.pose]
 
-  sprite
-    .setVisible(true)
-    .setPosition(
-      player.x,
-      player.y
-    )
-    .setTint(color)
-    .setScale(
-      (player.facing || 1) *
-      STICKMAN_SPRITE_SCALE,
+  let scale = STICKMAN_SPRITE_SCALE
 
-      STICKMAN_SPRITE_SCALE
-    )
+if (
+  player.pose === 'jump' ||
+  player.pose === 'laugh' ||
+  player.pose === 'heavy_laugh' ||
+  player.pose === 'cry' ||
+  player.pose === 'angry' ||
+  player.pose === 'moderately_angry'
+) {
+  scale = 0.68
+}
+
+sprite
+  .setVisible(true)
+  .setPosition(
+    player.x,
+    player.y
+  )
+  .setTint()
+  .setScale(
+    (player.facing || 1) * scale,
+    scale
+  )
 
   if (
     sprite.anims.currentAnim?.key !==
@@ -617,44 +618,6 @@ drawSpriteCryTears(
   // =================================================
   // WAVE — 3-segment arm with wrist snap
   // =================================================
-
-  drawWave(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t) {
-    const wt   = t * 4.2
-    const side = player.facing || 1
-
-    const sway  = Math.sin(wt * 0.38) * 2.5
-    const bob   = Math.abs(Math.sin(wt * 0.55)) * 2
-    const hTilt = Math.sin(wt * 0.6) * 3
-
-    drawHead(graphics, headX + hTilt, headY - bob)
-    drawLine(graphics, headX + hTilt, neckY, x + sway, hipY)
-
-    const shoulderX    = x + side * 8
-    const shoulderY    = chestY - 2
-    const elbowSwing   = Math.sin(wt) * 10
-    const forearmSwing = Math.sin(wt * 1.8) * 14
-    const wristSnap    = Math.cos(wt * 2.4) * 18
-
-    const elbowX = shoulderX + side * (16 + elbowSwing)
-    const elbowY = shoulderY - 16
-    const wristX = elbowX + side * 10
-    const wristY = elbowY - (20 + forearmSwing)
-    const handX  = wristX + wristSnap * side
-    const handY  = wristY - 10
-
-    drawLine(graphics, shoulderX, shoulderY, elbowX, elbowY)
-    drawLine(graphics, elbowX, elbowY, wristX, wristY)
-    drawLine(graphics, wristX, wristY, handX, handY)
-
-    drawLine(graphics, x, chestY, x - side * 20, chestY + 14)
-    drawLine(graphics, x - side * 20, chestY + 14, x - side * 12, chestY + 28)
-
-    const legBounce = Math.sin(wt * 1.9) * 2
-    drawLine(graphics, x, hipY, x - 8, feetY + legBounce)
-    drawLine(graphics, x, hipY, x + 8, feetY - legBounce)
-    drawLine(graphics, x - 8, feetY + legBounce, x - 16, feetY + legBounce)
-    drawLine(graphics, x + 8, feetY - legBounce, x + 16, feetY - legBounce)
-  }
 
   // =================================================
   // LAUGH — doubled-over, hands on knees
@@ -780,10 +743,7 @@ this.player.x = Phaser.Math.Clamp(
   this.player.pose = 'point'
 }
 
-else if (this.keys.wave.isDown) {
 
-  this.player.pose = 'wave'
-}
 
 else if (this.keys.heavyLaugh.isDown) {
 
@@ -870,7 +830,7 @@ else {
       animTime:   this.player.animTime,
       pointAngle: this.player.pointAngle,
       name:       this.name,
-      color:      this.playerColor,
+      
     })
   }
 
@@ -901,14 +861,7 @@ else {
     }
   }
 
-  handlePlayerColorChange() {
-    if (!this.colorSelect) return
-    const nextColor = this.colorSelect.value
-    if (this.colorMap[nextColor]) {
-      this.playerColorName = nextColor
-      this.playerColor     = this.colorMap[nextColor]
-    }
-  }
+  
 
   createRemotePlayer(data) {
     if (this.remotePlayers[data.id]) return
@@ -934,7 +887,7 @@ else {
       walkCycle:  0,
       pointAngle: data.pointAngle || 0,
       elbowSide:  data.elbowSide || 1,
-      color:      data.color || 0x0066ff,
+      
       name:       data.name,
       squashY: 1, squashX: 1,
       tearTimer: 0,
