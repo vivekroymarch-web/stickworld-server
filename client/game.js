@@ -499,7 +499,7 @@ if (
   player.pose === 'angry' ||
   player.pose === 'moderately_angry'
 ) {
-  offsetY = 10
+  offsetY = 14
 }
 
 sprite
