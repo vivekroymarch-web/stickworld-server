@@ -24,10 +24,19 @@ function drawLine(graphics, x1, y1, x2, y2) {
   graphics.lineBetween(x1, y1, x2, y2)
 }
 
-const SPRITE_FRAME_SIZE = 240
-const SPRITE_FEET_Y = 218
-const STICKMAN_SPRITE_SCALE = 0.78
-const SPRITE_POSES = new Set(['walk', 'wave', 'laugh', 'cry'])
+const SPRITE_FRAME_SIZE = 256
+const SPRITE_FEET_Y = 228
+const STICKMAN_SPRITE_SCALE = 0.55
+const SPRITE_POSES = new Set([
+  'idle',
+  'walk',
+  'jump',
+  'laugh',
+  'heavy_laugh',
+  'cry',
+  'angry',
+  'moderately_angry',
+])
 
 // =================================================
 // IDLE POSE
@@ -81,32 +90,81 @@ class MainScene extends Phaser.Scene {
 
   preload() {
     this.load.spritesheet(
-      'stickman-walk-sheet',
-      'assets/stickman/stickman_walk_sheet.png',
-      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
-    )
+  'stickman-idle-sheet',
+  'assets/stickman/stickman_idle_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
 
-    this.load.spritesheet(
-      'stickman-wave-sheet',
-      'assets/stickman/stickman_wave_sheet.png',
-      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
-    )
+this.load.spritesheet(
+  'stickman-jump-sheet',
+  'assets/stickman/stickman_jump_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
 
-    this.load.spritesheet(
-      'stickman-laugh-sheet',
-      'assets/stickman/stickman_laugh_sheet.png',
-      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
-    )
+this.load.spritesheet(
+  'stickman-heavy-laugh-sheet',
+  'assets/stickman/stickman_heavy_laugh_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
 
-    this.load.spritesheet(
-      'stickman-cry-sheet',
-      'assets/stickman/stickman_cry_sheet.png',
-      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
-    )
+this.load.spritesheet(
+  'stickman-angry-sheet',
+  'assets/stickman/stickman_angry_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
+
+this.load.spritesheet(
+  'stickman-moderately-angry-sheet',
+  'assets/stickman/stickman_moderately_angry_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
+this.load.spritesheet(
+  'stickman-walk-sheet',
+  'assets/stickman/stickman_walk_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
+
+this.load.spritesheet(
+  'stickman-laugh-sheet',
+  'assets/stickman/stickman_laugh_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
+
+this.load.spritesheet(
+  'stickman-cry-sheet',
+  'assets/stickman/stickman_cry_sheet.png',
+  {
+    frameWidth: SPRITE_FRAME_SIZE,
+    frameHeight: SPRITE_FRAME_SIZE
+  }
+)
   }
 
   create() {
     console.log("CREATE RUNNING")
+    this.game.canvas.style.imageRendering =
+  'pixelated'
 
     this.groundY = this.scale.height - 120
 
@@ -183,6 +241,14 @@ class MainScene extends Phaser.Scene {
       point: Phaser.Input.Keyboard.KeyCodes.R,
       cry:   Phaser.Input.Keyboard.KeyCodes.F,
       run:   Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      heavyLaugh:
+  Phaser.Input.Keyboard.KeyCodes.Z,
+
+angry:
+  Phaser.Input.Keyboard.KeyCodes.X,
+
+moderatelyAngry:
+  Phaser.Input.Keyboard.KeyCodes.C,
     })
 
     this.nameInput   = document.getElementById('player-name')
@@ -217,7 +283,7 @@ class MainScene extends Phaser.Scene {
 
     this.controlsText = this.add.text(
       20, 50,
-      'A/D move · W jump · SHIFT+A/D run · Q wave · E laugh · F cry · R point',
+      'A/D move · W jump · Q wave · E laugh · Z heavy laugh · F cry · X angry · C moderate angry · R point',
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
@@ -244,329 +310,309 @@ class MainScene extends Phaser.Scene {
   // =================================================
   // DRAW CHARACTER — main dispatcher
   // =================================================
+  // =================================================
+// SPRITE CREATION
+// =================================================
 
-  createCharacterSprite() {
-    return this.add.sprite(0, 0, 'stickman-walk-sheet')
-      .setOrigin(0.5, SPRITE_FEET_Y / SPRITE_FRAME_SIZE)
-      .setScale(STICKMAN_SPRITE_SCALE)
-      .setVisible(false)
-  }
+createCharacterSprite() {
 
-  createSpriteAnimations() {
-    const specs = [
-      { key: 'stickman-walk',  sheet: 'stickman-walk-sheet',  frames: 12, frameRate: 14 },
-      { key: 'stickman-wave',  sheet: 'stickman-wave-sheet',  frames: 12, frameRate: 10 },
-      { key: 'stickman-laugh', sheet: 'stickman-laugh-sheet', frames: 10, frameRate: 12 },
-      { key: 'stickman-cry',   sheet: 'stickman-cry-sheet',   frames: 12, frameRate: 9  },
-    ]
+  return this.add.sprite(
+    0,
+    0,
+    'stickman-idle-sheet'
+  )
+  .setOrigin(
+    0.5,
+    SPRITE_FEET_Y / SPRITE_FRAME_SIZE
+  )
+  .setScale(STICKMAN_SPRITE_SCALE)
+  .setVisible(false)
+}
 
-    for (const spec of specs) {
-      if (this.anims.exists(spec.key)) continue
+// =================================================
+// SPRITE ANIMATIONS
+// =================================================
 
-      this.anims.create({
-        key: spec.key,
-        frames: this.anims.generateFrameNumbers(spec.sheet, {
-          start: 0,
-          end: spec.frames - 1,
-        }),
-        frameRate: spec.frameRate,
-        repeat: -1,
-      })
+createSpriteAnimations() {
+
+  const specs = [
+
+    {
+      key: 'stickman-idle',
+      sheet: 'stickman-idle-sheet',
+      frames: 16,
+      frameRate: 8
+    },
+
+    {
+      key: 'stickman-walk',
+      sheet: 'stickman-walk-sheet',
+      frames: 16,
+      frameRate: 14
+    },
+
+    {
+      key: 'stickman-jump',
+      sheet: 'stickman-jump-sheet',
+      frames: 16,
+      frameRate: 10
+    },
+
+    {
+      key: 'stickman-laugh',
+      sheet: 'stickman-laugh-sheet',
+      frames: 16,
+      frameRate: 12
+    },
+
+    {
+      key: 'stickman-heavy_laugh',
+      sheet: 'stickman-heavy-laugh-sheet',
+      frames: 16,
+      frameRate: 14
+    },
+
+    {
+      key: 'stickman-cry',
+      sheet: 'stickman-cry-sheet',
+      frames: 16,
+      frameRate: 9
+    },
+
+    {
+      key: 'stickman-angry',
+      sheet: 'stickman-angry-sheet',
+      frames: 16,
+      frameRate: 8
+    },
+
+    {
+      key: 'stickman-moderately_angry',
+      sheet: 'stickman-moderately-angry-sheet',
+      frames: 16,
+      frameRate: 8
     }
-  }
+  ]
 
-  renderCharacter(graphics, sprite, player, color, isLocal = false) {
-    if (SPRITE_POSES.has(player.pose)) {
-      this.drawSpriteCharacter(graphics, sprite, player, color)
+  specs.forEach(spec => {
+
+    if (this.anims.exists(spec.key)) {
       return
     }
 
-    sprite.setVisible(false)
-    this.drawCharacter(graphics, player, color, isLocal)
+    this.anims.create({
+
+      key: spec.key,
+
+      frames: this.anims.generateFrameNumbers(
+        spec.sheet,
+        {
+          start: 0,
+          end: spec.frames - 1
+        }
+      ),
+
+      frameRate: spec.frameRate,
+
+      repeat: -1
+    })
+  })
+}
+
+// =================================================
+// RENDER CHARACTER
+// =================================================
+
+renderCharacter(
+  graphics,
+  sprite,
+  player,
+  color,
+  isLocal = false
+) {
+
+  if (SPRITE_POSES.has(player.pose)) {
+
+    this.drawSpriteCharacter(
+      graphics,
+      sprite,
+      player,
+      color
+    )
+
+    return
   }
 
-  drawSpriteCharacter(graphics, sprite, player, color) {
-    graphics.clear()
+  sprite.setVisible(false)
 
-    const key = `stickman-${player.pose}`
-    sprite
-      .setVisible(true)
-      .setPosition(player.x, player.y)
-      .setTint(color)
-      .setScale((player.facing || 1) * STICKMAN_SPRITE_SCALE, STICKMAN_SPRITE_SCALE)
+  this.drawCharacter(
+    graphics,
+    player,
+    color,
+    isLocal
+  )
+}
 
-    if (sprite.anims.currentAnim?.key !== key) {
-      sprite.play(key)
-    }
+// =================================================
+// DRAW SPRITE CHARACTER
+// =================================================
 
-    sprite.anims.timeScale = player.pose === 'walk'
-      ? Phaser.Math.Clamp(Math.abs(player.vx) / 1.8, 0.7, 1.3)
-      : 1
+drawSpriteCharacter(
+  graphics,
+  sprite,
+  player,
+  color
+) {
 
-    if (player.pose === 'cry') {
-      this.drawSpriteCryTears(graphics, player)
-    }
+  graphics.clear()
+
+  const poseMap = {
+
+    idle: 'stickman-idle',
+
+    walk: 'stickman-walk',
+
+    jump: 'stickman-jump',
+
+    laugh: 'stickman-laugh',
+
+    heavy_laugh: 'stickman-heavy_laugh',
+
+    cry: 'stickman-cry',
+
+    angry: 'stickman-angry',
+
+    moderately_angry:
+      'stickman-moderately_angry',
   }
 
-  drawSpriteCryTears(graphics, player) {
-    const phase = (this.time.now / 900) % 1
-    const mirror = player.facing || 1
-    const headX = player.x + mirror * 8 * STICKMAN_SPRITE_SCALE
-    const headY = player.y - 127 * STICKMAN_SPRITE_SCALE
+  const key = poseMap[player.pose]
 
-    graphics.fillStyle(0x4aa3ff, 0.88)
+  sprite
+    .setVisible(true)
+    .setPosition(
+      player.x,
+      player.y
+    )
+    .setTint(color)
+    .setScale(
+      (player.facing || 1) *
+      STICKMAN_SPRITE_SCALE,
 
-    for (let i = 0; i < 2; i++) {
-      const fall = (phase + i * 0.5) % 1
-      const tearX = headX + mirror * (i === 0 ? -7 : 7) * STICKMAN_SPRITE_SCALE
-      const tearY = headY + (14 + fall * 52) * STICKMAN_SPRITE_SCALE
-      const radius = Math.max(1, 3.5 - fall * 2.4)
+      STICKMAN_SPRITE_SCALE
+    )
 
-      graphics.fillCircle(tearX, tearY, radius)
-    }
+  if (
+    sprite.anims.currentAnim?.key !==
+    key
+  ) {
+    sprite.play(key)
   }
 
-  drawCharacter(graphics, player, color, isLocal = false) {
-    graphics.clear()
-    graphics.lineStyle(5, color, 1)
-    graphics.lineCap = 'round'
+  if (player.pose === 'walk') {
 
-    const x     = player.x
-    const feetY = player.y
-    const t     = player.animTime
+  sprite.anims.timeScale =
+    Phaser.Math.Clamp(
+      Math.abs(player.vx) / 1.5,
+      0.65,
+      1.1
+    )
+}
 
-    // =================================================
-    // WALK CYCLE SMOOTHING
-    // =================================================
+else {
 
-    const moveSpeed = Math.abs(player.vx)
-    const isRunning = player.pose === 'run'
+  sprite.anims.timeScale = 1
+}
 
-    const targetWalkSpeed = moveSpeed > 0.05
-      ? (isRunning ? 0.14 + moveSpeed * 0.10 : 0.06 + moveSpeed * 0.07)
-      : 0
-
-    player.walkCycle = Phaser.Math.Linear(player.walkCycle, targetWalkSpeed, 0.12)
-    player.animTime += player.walkCycle * 0.18
-
-    // =================================================
-    // SQUASH & STRETCH on landing
-    // =================================================
-
-    player.squashY = Phaser.Math.Linear(player.squashY, 1, 0.18)
-    player.squashX = Phaser.Math.Linear(player.squashX, 1, 0.18)
-
-    // =================================================
-    // BODY POSITIONS (shared across most poses)
-    // =================================================
-
-    const torsoBob  = Math.abs(Math.sin(t)) * moveSpeed * 2.5
-    const torsoLean = player.vx * (isRunning ? 3.2 : 1.8)
-
-    const headX  = x + torsoLean
-    const headY  = (feetY - 118 - torsoBob) * player.squashY + feetY * (1 - player.squashY)
-    const neckY  = (feetY - 96  - torsoBob) * player.squashY + feetY * (1 - player.squashY)
-    const chestY = (feetY - 72  - torsoBob) * player.squashY + feetY * (1 - player.squashY)
-    const hipY   = (feetY - 38  - torsoBob) * player.squashY + feetY * (1 - player.squashY)
-
-    // =================================================
-    // DISPATCH TO POSE
-    // =================================================
-
-    switch (player.pose) {
-      case 'idle':  this.drawIdle( graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t); break
-      case 'walk':  this.drawWalk( graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t); break
-      case 'run':   this.drawRun(  graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t); break
-      case 'jump':  this.drawJump( graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t); break
-      case 'wave':  this.drawWave( graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t); break
-      case 'laugh': this.drawLaugh(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t); break
-      case 'cry':   this.drawCry(  graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t); break
-      case 'point': this.drawPoint(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t, isLocal); break
-    }
+  if (player.pose === 'cry') {
+    this.drawSpriteCryTears(
+      graphics,
+      player
+    )
   }
+}
 
+// =================================================
+// SPRITE CRY TEARS
+// =================================================
+
+drawSpriteCryTears(
+  graphics,
+  player
+) {
+
+  const phase =
+    (this.time.now / 900) % 1
+
+  const mirror =
+    player.facing || 1
+
+  const headX =
+    player.x +
+    mirror *
+    8 *
+    STICKMAN_SPRITE_SCALE
+
+  const headY =
+    player.y -
+    127 *
+    STICKMAN_SPRITE_SCALE
+
+  graphics.fillStyle(
+    0x4aa3ff,
+    0.88
+  )
+
+  for (let i = 0; i < 2; i++) {
+
+    const fall =
+      (phase + i * 0.5) % 1
+
+    const tearX =
+      headX +
+      mirror *
+      (i === 0 ? -7 : 7) *
+      STICKMAN_SPRITE_SCALE
+
+    const tearY =
+      headY +
+      (14 + fall * 52) *
+      STICKMAN_SPRITE_SCALE
+
+    const radius =
+      Math.max(
+        1,
+        3.5 - fall * 2.4
+      )
+
+    graphics.fillCircle(
+      tearX,
+      tearY,
+      radius
+    )
+  }
+}
   // =================================================
   // IDLE
   // =================================================
 
-  drawIdle(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t) {
-    const breath = Math.sin(t * 0.04) * 1.5
-
-    drawHead(graphics, headX, headY)
-    drawLine(graphics, headX, neckY, x, hipY - breath)
-
-    drawLine(graphics, x, chestY, x - 22, chestY + 12 + breath)
-    drawLine(graphics, x - 22, chestY + 12 + breath, x - 15, chestY + 28 + breath * 0.5)
-    drawLine(graphics, x, chestY, x + 22, chestY + 12 + breath)
-    drawLine(graphics, x + 22, chestY + 12 + breath, x + 15, chestY + 28 + breath * 0.5)
-
-    drawStandingLegs(graphics, x, hipY, feetY)
-  }
+  
 
   // =================================================
   // WALK — 4-phase gait with full IK legs
   // =================================================
 
-  drawWalk(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t) {
-    const phase = (t * 0.55) % 1
-    const p4    = phase * 4
-    const idx   = Math.floor(p4) % 4
-    const blend = easeInOut(p4 - Math.floor(p4))
-
-    const poses = [
-      // CONTACT — heel strike
-      { bodyY:  0, lFX: -20, lFY: 0, lKX: -9,  lKY: 30, rFX: 18, rFY: -6, rKX: 8,  rKY: 22, lAX: 12, rAX: -12 },
-      // DOWN — weight loaded
-      { bodyY:  4, lFX: -16, lFY: 0, lKX: -5,  lKY: 34, rFX: 10, rFY:-14, rKX: 5,  rKY: 18, lAX: 8,  rAX: -8  },
-      // PASSING — mid swing
-      { bodyY: -2, lFX:  -5, lFY: 0, lKX: -2,  lKY: 28, rFX: 6,  rFY:-24, rKX: 2,  rKY: 12, lAX:-10, rAX: 10  },
-      // UP — toe off
-      { bodyY: -6, lFX:  12, lFY:-18,lKX:  5,  lKY: 16, rFX:-12, rFY: 0,  rKX: -5, rKY: 30, lAX:-12, rAX: 12  },
-    ]
-
-    const cur  = poses[idx]
-    const next = poses[(idx + 1) % 4]
-    const L = (a, b) => lerp(a, b, blend)
-
-    const bodyOffY = L(cur.bodyY, next.bodyY)
-
-    drawHead(graphics, headX, headY)
-    drawLine(graphics, headX, neckY + bodyOffY, x, hipY + bodyOffY)
-
-    const lAX = L(cur.lAX, next.lAX)
-    const rAX = L(cur.rAX, next.rAX)
-    drawLine(graphics, x, chestY, x + lAX,        chestY + 18)
-    drawLine(graphics, x + lAX,  chestY + 18,     x + lAX * 0.6, chestY + 32)
-    drawLine(graphics, x, chestY, x + rAX,        chestY + 18)
-    drawLine(graphics, x + rAX,  chestY + 18,     x + rAX * 0.6, chestY + 32)
-
-    const hip = hipY + bodyOffY
-
-    const lFX = x + L(cur.lFX, next.lFX)
-    const lFY = feetY + L(cur.lFY, next.lFY)
-    const lKX = x + L(cur.lKX, next.lKX)
-    const lKY = hip + L(cur.lKY, next.lKY)
-    drawLine(graphics, x, hip, lKX, lKY)
-    drawLine(graphics, lKX, lKY, lFX, lFY)
-    drawLine(graphics, lFX, lFY, lFX - 10 * (lFY < feetY ? 0.5 : 1), lFY)
-
-    const rFX = x + L(cur.rFX, next.rFX)
-    const rFY = feetY + L(cur.rFY, next.rFY)
-    const rKX = x + L(cur.rKX, next.rKX)
-    const rKY = hip + L(cur.rKY, next.rKY)
-    drawLine(graphics, x, hip, rKX, rKY)
-    drawLine(graphics, rKX, rKY, rFX, rFY)
-    drawLine(graphics, rFX, rFY, rFX + 10 * (rFY < feetY ? 0.5 : 1), rFY)
-  }
 
   // =================================================
   // RUN — aggressive lean, high knees, pumping arms
   // =================================================
 
-  drawRun(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t) {
-    const phase = (t * 0.9) % 1
-    const p2    = phase * 2
-    const idx   = Math.floor(p2) % 2
-    const blend = easeInOut(p2 - Math.floor(p2))
-
-    const poses = [
-      // DRIVE — push off back, drive knee forward
-      { bodyY: -4, lFX: -28, lFY: 0, lKX: -18, lKY: 18, rFX: 20, rFY:-30, rKX: 16, rKY: 6,  lAX:-28, lAY:-20, rAX: 24, rAY: 14 },
-      // RECOVERY — float phase, switch legs
-      { bodyY: -2, lFX:  22, lFY:-28,lKX: 18,  lKY: 4,  rFX:-26, rFY: 0,  rKX:-16, rKY: 20, lAX: 26, lAY: 12, rAX:-26, rAY:-22 },
-    ]
-
-    const cur  = poses[idx]
-    const next = poses[(idx + 1) % 2]
-    const L = (a, b) => lerp(a, b, blend)
-
-    const bodyOffY = L(cur.bodyY, next.bodyY)
-
-    drawHead(graphics, headX, headY)
-    drawLine(graphics, headX, neckY + bodyOffY, x, hipY + bodyOffY)
-
-    const lAX = L(cur.lAX, next.lAX)
-    const lAY = L(cur.lAY, next.lAY)
-    const rAX = L(cur.rAX, next.rAX)
-    const rAY = L(cur.rAY, next.rAY)
-    drawLine(graphics, x, chestY, x + lAX * 0.6, chestY + lAY * 0.5)
-    drawLine(graphics, x + lAX * 0.6, chestY + lAY * 0.5, x + lAX, chestY + lAY)
-    drawLine(graphics, x, chestY, x + rAX * 0.6, chestY + rAY * 0.5)
-    drawLine(graphics, x + rAX * 0.6, chestY + rAY * 0.5, x + rAX, chestY + rAY)
-
-    const hip = hipY + bodyOffY
-
-    const lFX = x + L(cur.lFX, next.lFX)
-    const lFY = feetY + L(cur.lFY, next.lFY)
-    const lKX = x + L(cur.lKX, next.lKX)
-    const lKY = hip + L(cur.lKY, next.lKY)
-    drawLine(graphics, x, hip, lKX, lKY)
-    drawLine(graphics, lKX, lKY, lFX, lFY)
-    if (lFY >= feetY - 2) drawLine(graphics, lFX, lFY, lFX - 12, lFY)
-
-    const rFX = x + L(cur.rFX, next.rFX)
-    const rFY = feetY + L(cur.rFY, next.rFY)
-    const rKX = x + L(cur.rKX, next.rKX)
-    const rKY = hip + L(cur.rKY, next.rKY)
-    drawLine(graphics, x, hip, rKX, rKY)
-    drawLine(graphics, rKX, rKY, rFX, rFY)
-    if (rFY >= feetY - 2) drawLine(graphics, rFX, rFY, rFX + 12, rFY)
-  }
 
   // =================================================
   // JUMP — rising / peak / falling states
   // =================================================
 
-  drawJump(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t) {
-    const vy      = player.vy
-    const rising  = vy < 0
-    const peak    = Math.abs(vy) < 2
-    const stretch = Phaser.Math.Clamp(Math.abs(vy) / 8, 0, 1)
-
-    const hStretch = rising ? 1 + stretch * 0.25 : 1 - stretch * 0.12
-    graphics.strokeEllipse(headX, headY, 32 / hStretch, 32 * hStretch)
-
-    drawLine(graphics, headX, neckY, x, hipY)
-
-    if (peak) {
-      drawLine(graphics, x, chestY, x - 34, chestY - 22)
-      drawLine(graphics, x - 34, chestY - 22, x - 28, chestY - 6)
-      drawLine(graphics, x, chestY, x + 34, chestY - 22)
-      drawLine(graphics, x + 34, chestY - 22, x + 28, chestY - 6)
-
-      drawLine(graphics, x, hipY, x - 26, feetY - 30)
-      drawLine(graphics, x - 26, feetY - 30, x - 18, feetY - 8)
-      drawLine(graphics, x, hipY, x + 26, feetY - 30)
-      drawLine(graphics, x + 26, feetY - 30, x + 18, feetY - 8)
-
-    } else if (rising) {
-      const s = stretch
-      drawLine(graphics, x, chestY, x - 22, chestY - 20 * s)
-      drawLine(graphics, x - 22, chestY - 20 * s, x - 10, chestY - 8 * s)
-      drawLine(graphics, x, chestY, x + 22, chestY - 20 * s)
-      drawLine(graphics, x + 22, chestY - 20 * s, x + 10, chestY - 8 * s)
-
-      drawLine(graphics, x, hipY, x - 12, feetY - 20 * s)
-      drawLine(graphics, x - 12, feetY - 20 * s, x - 4, feetY - 4 * s)
-      drawLine(graphics, x, hipY, x + 12, feetY - 20 * s)
-      drawLine(graphics, x + 12, feetY - 20 * s, x + 4, feetY - 4 * s)
-
-    } else {
-      const s = stretch
-      drawLine(graphics, x, chestY, x - 26, chestY + 14 + 8 * s)
-      drawLine(graphics, x - 26, chestY + 14 + 8 * s, x - 16, chestY + 30 + 10 * s)
-      drawLine(graphics, x, chestY, x + 26, chestY + 14 + 8 * s)
-      drawLine(graphics, x + 26, chestY + 14 + 8 * s, x + 16, chestY + 30 + 10 * s)
-
-      drawLine(graphics, x, hipY, x - 14, feetY - 18 * s)
-      drawLine(graphics, x - 14, feetY - 18 * s, x - 6, feetY)
-      drawLine(graphics, x, hipY, x + 14, feetY - 18 * s)
-      drawLine(graphics, x + 14, feetY - 18 * s, x + 6, feetY)
-
-      drawLine(graphics, x - 6, feetY, x - 14, feetY)
-      drawLine(graphics, x + 6, feetY, x + 14, feetY)
-    }
-  }
+  
 
   // =================================================
   // WAVE — 3-segment arm with wrist snap
@@ -614,80 +660,13 @@ class MainScene extends Phaser.Scene {
   // LAUGH — doubled-over, hands on knees
   // =================================================
 
-  drawLaugh(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t) {
-    const lt     = t * 9
-    const shake  = Math.sin(lt) * 5
-    const bounce = Math.abs(Math.sin(lt)) * 6
-    const lean   = 14 + bounce * 0.6
 
-    const hx = x + lean + Math.sin(lt * 0.7) * 3
-    const hy = headY + bounce * 0.8
-    drawHead(graphics, hx, hy)
-
-    const chestFwd = x + lean * 0.7
-    drawLine(graphics, hx, hy + 16, chestFwd, chestY + bounce * 0.4)
-
-    const kneeL = x - 12
-    const kneeR = x + 12
-    const kneeY = feetY - 28
-
-    drawLine(graphics, chestFwd, chestY + bounce * 0.4, kneeL - 4 + shake, kneeY - 8)
-    drawLine(graphics, kneeL - 4 + shake, kneeY - 8, kneeL, kneeY + 6)
-    drawLine(graphics, chestFwd, chestY + bounce * 0.4, kneeR + 4 - shake, kneeY - 8)
-    drawLine(graphics, kneeR + 4 - shake, kneeY - 8, kneeR, kneeY + 6)
-
-    drawLine(graphics, x, hipY + bounce * 0.3, kneeL, kneeY)
-    drawLine(graphics, kneeL, kneeY, x - 14, feetY)
-    drawLine(graphics, x - 14, feetY, x - 22, feetY)
-    drawLine(graphics, x, hipY + bounce * 0.3, kneeR, kneeY)
-    drawLine(graphics, kneeR, kneeY, x + 14, feetY)
-    drawLine(graphics, x + 14, feetY, x + 22, feetY)
-  }
 
   // =================================================
   // CRY — hunched, bowed head, falling tears
   // =================================================
 
-  drawCry(graphics, player, x, headX, headY, neckY, chestY, hipY, feetY, t) {
-    const ct    = t * 6
-    const sob   = Math.sin(ct) * 3
-    const hunch = 10
 
-    const hx = x + hunch * 0.5
-    const hy = headY + 8 + Math.abs(Math.sin(ct * 0.5)) * 3
-    drawHead(graphics, hx, hy)
-
-    const torsoFwd = x + hunch
-    drawLine(graphics, hx, hy + 16, torsoFwd, chestY + 10)
-    drawLine(graphics, torsoFwd, chestY + 10, x + sob * 0.5, hipY + 4)
-
-    drawLine(graphics, torsoFwd, chestY + 12, torsoFwd - 16 + sob, chestY + 28)
-    drawLine(graphics, torsoFwd - 16 + sob, chestY + 28, torsoFwd - 10 + sob * 0.5, chestY + 44)
-    drawLine(graphics, torsoFwd, chestY + 12, torsoFwd + 16 - sob, chestY + 28)
-    drawLine(graphics, torsoFwd + 16 - sob, chestY + 28, torsoFwd + 10 - sob * 0.5, chestY + 44)
-
-    drawLine(graphics, x, hipY + 4, x - 6, feetY)
-    drawLine(graphics, x, hipY + 4, x + 6, feetY)
-    drawLine(graphics, x - 6, feetY, x - 14, feetY)
-    drawLine(graphics, x + 6, feetY, x + 14, feetY)
-
-    player.tearTimer = (player.tearTimer || 0) + 0.016
-    const tearCycle = player.tearTimer % 1.2
-
-    if (tearCycle < 0.9) {
-      const ty = hy + tearCycle * 40
-      const tr = 2.5 - tearCycle * 1.5
-      if (tr > 0.5) { graphics.fillStyle(0x4499ff, 0.85); graphics.fillCircle(hx - 8, ty, tr) }
-    }
-    const tearCycle2 = (player.tearTimer + 0.6) % 1.2
-    if (tearCycle2 < 0.9) {
-      const ty2 = hy + tearCycle2 * 40
-      const tr2 = 2.5 - tearCycle2 * 1.5
-      if (tr2 > 0.5) { graphics.fillStyle(0x4499ff, 0.85); graphics.fillCircle(hx + 8, ty2, tr2) }
-    }
-
-    graphics.lineStyle(5, player.color || 0xff0000, 1)
-  }
 
   // =================================================
   // POINT — IK arm following cursor
@@ -782,29 +761,66 @@ class MainScene extends Phaser.Scene {
       this.player.y        = this.groundY
       this.player.vy       = 0
       this.player.grounded = true
+      
     }
 
     // =================================================
     // POSE SELECTION
     // =================================================
-
     if (this.keys.point.isDown) {
-      this.player.pose = 'point'
-    } else if (this.keys.wave.isDown) {
-      this.player.pose = 'wave'
-    } else if (this.keys.laugh.isDown) {
-      this.player.pose = 'laugh'
-    } else if (this.keys.cry.isDown) {
-      this.player.pose = 'cry'
-    } else if (!this.player.grounded) {
-      this.player.pose = 'jump'
-    } else if (running && Math.abs(this.player.vx) > 0.3) {
-      this.player.pose = 'run'
-    } else if (Math.abs(this.player.vx) > 0.15) {
-      this.player.pose = 'walk'
-    } else {
-      this.player.pose = 'idle'
-    }
+
+  this.player.pose = 'point'
+}
+
+else if (this.keys.wave.isDown) {
+
+  this.player.pose = 'wave'
+}
+
+else if (this.keys.heavyLaugh.isDown) {
+
+  this.player.pose = 'heavy_laugh'
+}
+
+else if (this.keys.laugh.isDown) {
+
+  this.player.pose = 'laugh'
+}
+
+else if (this.keys.cry.isDown) {
+
+  this.player.pose = 'cry'
+}
+
+else if (this.keys.angry.isDown) {
+
+  this.player.pose = 'angry'
+}
+
+else if (
+  this.keys.moderatelyAngry.isDown
+) {
+
+  this.player.pose =
+    'moderately_angry'
+}
+
+else if (!this.player.grounded) {
+
+  this.player.pose = 'jump'
+}
+
+else if (
+  Math.abs(this.player.vx) > 0.15
+) {
+
+  this.player.pose = 'walk'
+}
+
+else {
+
+  this.player.pose = 'idle'
+}
 
     this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
 
