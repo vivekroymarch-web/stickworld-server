@@ -292,7 +292,7 @@ this.cameras.main.startFollow(
   0.08,
   0.08
 )
-    )
+    
     this.cameras.main.setBounds(0, 0, 5000, this.scale.height)
 
     // =================================================
