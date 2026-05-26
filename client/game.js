@@ -285,25 +285,15 @@ moderatelyAngry:
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
-    this.cameraTarget = this.add.rectangle(
-  this.player.x,
-  this.player.y,
-  1,
-  1,
-  0x000000,
-  0
-)
+    
 
 this.cameras.main.startFollow(
   this.cameraTarget,
   true,
-  0.16,
-  0.16
+  0.08,
+  0.08
 )
-this.cameras.main.setDeadzone(
-  200,
-  120
-)
+
     
     this.cameras.main.setBounds(
   0,
@@ -762,10 +752,7 @@ drawSpriteCryTears(
 
     this.player.vy += 0.32 * dt
     this.player.y  += this.player.vy * dt * 3
-    this.cameraTarget.setPosition(
-  this.player.x,
-  this.player.y
-)
+    
 
     if (this.player.y >= this.groundY) {
       if (!this.player.grounded && Math.abs(this.player.vy) > 3) {
