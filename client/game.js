@@ -172,23 +172,24 @@ this.load.spritesheet(
     // =================================================
 
     this.add.rectangle(
-      0, 0,
-      WORLD_WIDTH,
-      this.scale.height,
-      0xfafafa
-    ).setOrigin(0)
+  WORLD_WIDTH / 2,
+  this.scale.height / 2,
+  WORLD_WIDTH,
+  this.scale.height,
+  0xfafafa
+)
 
     // =================================================
     // GROUND
     // =================================================
 
     this.add.rectangle(
-      0,
-      this.groundY,
-      WORLD_WIDTH,
-      120,
-      0xe8e8e8
-    ).setOrigin(0)
+  WORLD_WIDTH / 2,
+  this.groundY,
+  WORLD_WIDTH,
+  2,
+  0xcccccc
+)
 
     this.add.rectangle(
       0,
