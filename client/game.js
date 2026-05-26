@@ -742,14 +742,15 @@ drawSpriteCryTears(
     this.player.vx *= friction
 
     const WORLD_WIDTH = 5000
-
-this.player.x += this.player.vx * dt * 4
+   this.player.x += this.player.vx * dt * 4
 
 this.player.x = Phaser.Math.Clamp(
   this.player.x,
   40,
-  WORLD_WIDTH - 40
+  5000 - 40
 )
+  
+
 
     if (this.keys.jump.isDown && this.player.grounded) {
       this.player.vy = running ? -9 : -7
