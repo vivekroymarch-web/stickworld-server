@@ -168,7 +168,7 @@ class MainScene extends Phaser.Scene {
     // =================================================
 
     this.player = {
-      x: 300,
+      x: Math.floor(WORLD_WIDTH / 2),
       y: this.groundY,
       vx: 0,
       vy: 0,
@@ -248,7 +248,7 @@ class MainScene extends Phaser.Scene {
     ).setScrollFactor(0)
 
     // Manual edge-scroll: camera only moves when player is near screen edges
-    this.scrollX = 0
+    this.scrollX = Math.floor(WORLD_WIDTH / 2) - Math.floor(this.scale.width / 2)
     this.cameras.main.setScroll(0, 0)
 
 
