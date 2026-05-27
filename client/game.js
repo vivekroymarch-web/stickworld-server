@@ -528,9 +528,9 @@ if (
 sprite
   .setVisible(true)
   .setPosition(
-  player.x,
-  player.y - 90 + offsetY
-)
+    player.x,
+    player.y + offsetY
+  )
   .setTint()
   .setScale(
     (player.facing || 1) * scale,
