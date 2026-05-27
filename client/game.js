@@ -222,27 +222,45 @@ class MainScene extends Phaser.Scene {
     tunerDiv.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:16px;align-items:center;background:rgba(255,255,255,0.9);padding:6px 14px;border-radius:8px;font-family:Arial;font-size:13px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15)'
 
     tunerDiv.innerHTML = `
-      <label style="color:#555">Emote Offset:
-        <input id="emote-nudge" type="range" min="-100" max="100" step="1" value="38"
-          style="width:100px;margin:0 6px">
-        <span id="emote-nudge-val">38</span>px
-      </label>
-      <label style="color:#555">Emote Scale:
-        <input id="emote-scale" type="range" min="0.5" max="2.5" step="0.01" value="1.35"
-          style="width:100px;margin:0 6px">
-        <span id="emote-scale-val">1.35</span>x
-      </label>
+      <span style="color:#555">Emote Offset:</span>
+      <button id="nudge-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
+      <input id="emote-nudge" type="number" value="38" step="1"
+        style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
+      <button id="nudge-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
+      <span style="color:#bbb;margin:0 4px">|</span>
+      <span style="color:#555">Emote Scale:</span>
+      <button id="scale-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
+      <input id="emote-scale" type="number" value="1.35" step="0.01"
+        style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
+      <button id="scale-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
     `
     document.body.appendChild(tunerDiv)
 
-    document.getElementById('emote-nudge').addEventListener('input', (e) => {
-      this.emoteNudge = parseFloat(e.target.value)
-      document.getElementById('emote-nudge-val').textContent = e.target.value
+    const nudgeInput = document.getElementById('emote-nudge')
+    const scaleInput = document.getElementById('emote-scale')
+
+    document.getElementById('nudge-down').addEventListener('click', () => {
+      this.emoteNudge = parseFloat((this.emoteNudge - 1).toFixed(1))
+      nudgeInput.value = this.emoteNudge
+    })
+    document.getElementById('nudge-up').addEventListener('click', () => {
+      this.emoteNudge = parseFloat((this.emoteNudge + 1).toFixed(1))
+      nudgeInput.value = this.emoteNudge
+    })
+    nudgeInput.addEventListener('change', (e) => {
+      this.emoteNudge = parseFloat(e.target.value) || 0
     })
 
-    document.getElementById('emote-scale').addEventListener('input', (e) => {
-      this.emoteScale = parseFloat(e.target.value)
-      document.getElementById('emote-scale-val').textContent = parseFloat(e.target.value).toFixed(2)
+    document.getElementById('scale-down').addEventListener('click', () => {
+      this.emoteScale = parseFloat((this.emoteScale - 0.01).toFixed(2))
+      scaleInput.value = this.emoteScale.toFixed(2)
+    })
+    document.getElementById('scale-up').addEventListener('click', () => {
+      this.emoteScale = parseFloat((this.emoteScale + 0.01).toFixed(2))
+      scaleInput.value = this.emoteScale.toFixed(2)
+    })
+    scaleInput.addEventListener('change', (e) => {
+      this.emoteScale = parseFloat(e.target.value) || 1
     })
 
     // =================================================
