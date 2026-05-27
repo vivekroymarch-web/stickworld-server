@@ -83,127 +83,75 @@ class MainScene extends Phaser.Scene {
 
   preload() {
     this.load.spritesheet(
-  'stickman-idle-sheet',
-  'assets/stickman/stickman_idle_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
+      'stickman-idle-sheet',
+      'assets/stickman/stickman_idle_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
 
-this.load.spritesheet(
-  'stickman-jump-sheet',
-  'assets/stickman/stickman_jump_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
+    this.load.spritesheet(
+      'stickman-jump-sheet',
+      'assets/stickman/stickman_jump_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
 
-this.load.spritesheet(
-  'stickman-heavy-laugh-sheet',
-  'assets/stickman/stickman_heavy_laugh_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
+    this.load.spritesheet(
+      'stickman-heavy-laugh-sheet',
+      'assets/stickman/stickman_heavy_laugh_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
 
-this.load.spritesheet(
-  'stickman-angry-sheet',
-  'assets/stickman/stickman_angry_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
+    this.load.spritesheet(
+      'stickman-angry-sheet',
+      'assets/stickman/stickman_angry_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
 
-this.load.spritesheet(
-  'stickman-moderately-angry-sheet',
-  'assets/stickman/stickman_moderately_angry_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
-this.load.spritesheet(
-  'stickman-walk-sheet',
-  'assets/stickman/stickman_walk_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
+    this.load.spritesheet(
+      'stickman-moderately-angry-sheet',
+      'assets/stickman/stickman_moderately_angry_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
 
-this.load.spritesheet(
-  'stickman-laugh-sheet',
-  'assets/stickman/stickman_laugh_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
+    this.load.spritesheet(
+      'stickman-walk-sheet',
+      'assets/stickman/stickman_walk_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
 
-this.load.spritesheet(
-  'stickman-cry-sheet',
-  'assets/stickman/stickman_cry_sheet.png',
-  {
-    frameWidth: SPRITE_FRAME_SIZE,
-    frameHeight: SPRITE_FRAME_SIZE
-  }
-)
+    this.load.spritesheet(
+      'stickman-laugh-sheet',
+      'assets/stickman/stickman_laugh_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
+
+    this.load.spritesheet(
+      'stickman-cry-sheet',
+      'assets/stickman/stickman_cry_sheet.png',
+      { frameWidth: SPRITE_FRAME_SIZE, frameHeight: SPRITE_FRAME_SIZE }
+    )
   }
 
   create() {
     console.log("CREATE RUNNING")
     this.groundY = this.scale.height - 120
-    this.game.canvas.style.imageRendering =
-  'pixelated'
+    this.game.canvas.style.imageRendering = 'pixelated'
 
-    this.physics.world.setBounds(
-  0,
-  0,
-  WORLD_WIDTH,
-  this.scale.height
-)
-this.cameras.main.setBounds(
-  0,
-  0,
-  WORLD_WIDTH,
-  this.scale.height
-)
+    this.physics.world.setBounds(0, 0, WORLD_WIDTH, this.scale.height)
+    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, this.scale.height)
 
     // =================================================
     // BACKGROUND
     // =================================================
 
-    this.add.rectangle(
-  0,
-  0,
-  WORLD_WIDTH,
-  this.scale.height,
-  0xfafafa
-).setOrigin(0)
+    this.add.rectangle(0, 0, WORLD_WIDTH, this.scale.height, 0xfafafa).setOrigin(0)
 
     // =================================================
     // GROUND
     // =================================================
 
-    this.add.rectangle(
-  WORLD_WIDTH / 2,
-  this.groundY,
-  WORLD_WIDTH,
-  2,
-  0xcccccc
-)
+    this.add.rectangle(WORLD_WIDTH / 2, this.groundY, WORLD_WIDTH, 2, 0xcccccc)
 
-    this.add.rectangle(
-      0,
-      this.groundY,
-      WORLD_WIDTH,
-      2,
-      0xcccccc
-    ).setOrigin(0)
+    this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0)
 
     // =================================================
     // PLAYER
@@ -233,7 +181,7 @@ this.cameras.main.setBounds(
     this.playerGraphics = this.add.graphics()
     this.playerSprite = this.createCharacterSprite()
     this.playerSprite.setScrollFactor(1)
-this.playerSprite.setDepth(10)
+    this.playerSprite.setDepth(10)
     this.createSpriteAnimations()
 
     // =================================================
@@ -241,34 +189,24 @@ this.playerSprite.setDepth(10)
     // =================================================
 
     this.keys = this.input.keyboard.addKeys({
-      left:  Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D,
-      jump:  Phaser.Input.Keyboard.KeyCodes.W,
-      
-      laugh: Phaser.Input.Keyboard.KeyCodes.E,
-      point: Phaser.Input.Keyboard.KeyCodes.R,
-      cry:   Phaser.Input.Keyboard.KeyCodes.F,
-      run:   Phaser.Input.Keyboard.KeyCodes.SHIFT,
-      heavyLaugh:
-  Phaser.Input.Keyboard.KeyCodes.Z,
-
-angry:
-  Phaser.Input.Keyboard.KeyCodes.X,
-
-moderatelyAngry:
-  Phaser.Input.Keyboard.KeyCodes.C,
+      left:           Phaser.Input.Keyboard.KeyCodes.A,
+      right:          Phaser.Input.Keyboard.KeyCodes.D,
+      jump:           Phaser.Input.Keyboard.KeyCodes.W,
+      laugh:          Phaser.Input.Keyboard.KeyCodes.E,
+      point:          Phaser.Input.Keyboard.KeyCodes.R,
+      cry:            Phaser.Input.Keyboard.KeyCodes.F,
+      run:            Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      heavyLaugh:     Phaser.Input.Keyboard.KeyCodes.Z,
+      angry:          Phaser.Input.Keyboard.KeyCodes.X,
+      moderatelyAngry: Phaser.Input.Keyboard.KeyCodes.C,
     })
 
-    this.nameInput   = document.getElementById('player-name')
-    
-
+    this.nameInput = document.getElementById('player-name')
 
     if (this.nameInput) {
       this.nameInput.value = this.name
       this.nameInput.addEventListener('change', () => this.handlePlayerNameChange())
     }
-
-  
 
     // =================================================
     // UI
@@ -293,21 +231,9 @@ moderatelyAngry:
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
-    
- this.cameras.main.startFollow(
-  this.playerSprite,
-  true,
-  0.18,
-  0.18
-)
-
-this.cameras.main.setDeadzone(
-  window.innerWidth * 0.3,
-  window.innerHeight * 0.25
-)
-
-    
-    
+    // FIX 1: Tighter deadzone so camera follows the player properly
+    this.cameras.main.startFollow(this.playerSprite, true, 0.18, 0.18)
+    this.cameras.main.setDeadzone(80, 60)
 
     // =================================================
     // NETWORK
@@ -324,346 +250,144 @@ this.cameras.main.setDeadzone(
   }
 
   // =================================================
-  // DRAW CHARACTER — main dispatcher
+  // SPRITE CREATION
   // =================================================
+
+  createCharacterSprite() {
+    return this.add.sprite(0, 0, 'stickman-idle-sheet')
+      .setOrigin(0.5, 0.5)
+      .setScale(STICKMAN_SPRITE_SCALE)
+      .setVisible(false)
+  }
+
   // =================================================
-// SPRITE CREATION
-// =================================================
+  // SPRITE ANIMATIONS
+  // =================================================
 
-createCharacterSprite() {
+  createSpriteAnimations() {
+    const specs = [
+      { key: 'stickman-idle',             sheet: 'stickman-idle-sheet',             frames: 16, frameRate: 8  },
+      { key: 'stickman-walk',             sheet: 'stickman-walk-sheet',             frames: 16, frameRate: 14 },
+      { key: 'stickman-jump',             sheet: 'stickman-jump-sheet',             frames: 16, frameRate: 10 },
+      { key: 'stickman-laugh',            sheet: 'stickman-laugh-sheet',            frames: 16, frameRate: 12 },
+      { key: 'stickman-heavy_laugh',      sheet: 'stickman-heavy-laugh-sheet',      frames: 16, frameRate: 14 },
+      { key: 'stickman-cry',              sheet: 'stickman-cry-sheet',              frames: 16, frameRate: 9  },
+      { key: 'stickman-angry',            sheet: 'stickman-angry-sheet',            frames: 16, frameRate: 8  },
+      { key: 'stickman-moderately_angry', sheet: 'stickman-moderately-angry-sheet', frames: 16, frameRate: 8  },
+    ]
 
-  return this.add.sprite(
-    0,
-    0,
-    'stickman-idle-sheet'
-  )
-  .setOrigin(0.5, 0.5)
-  .setScale(STICKMAN_SPRITE_SCALE)
-  .setVisible(false)
-}
+    specs.forEach(spec => {
+      if (this.anims.exists(spec.key)) return
+      this.anims.create({
+        key: spec.key,
+        frames: this.anims.generateFrameNumbers(spec.sheet, { start: 0, end: spec.frames - 1 }),
+        frameRate: spec.frameRate,
+        repeat: -1,
+      })
+    })
+  }
 
-// =================================================
-// SPRITE ANIMATIONS
-// =================================================
+  // =================================================
+  // RENDER CHARACTER — main dispatcher
+  // =================================================
 
-createSpriteAnimations() {
-
-  const specs = [
-
-    {
-      key: 'stickman-idle',
-      sheet: 'stickman-idle-sheet',
-      frames: 16,
-      frameRate: 8
-    },
-
-    {
-      key: 'stickman-walk',
-      sheet: 'stickman-walk-sheet',
-      frames: 16,
-      frameRate: 14
-    },
-
-    {
-      key: 'stickman-jump',
-      sheet: 'stickman-jump-sheet',
-      frames: 16,
-      frameRate: 10
-    },
-
-    {
-      key: 'stickman-laugh',
-      sheet: 'stickman-laugh-sheet',
-      frames: 16,
-      frameRate: 12
-    },
-
-    {
-      key: 'stickman-heavy_laugh',
-      sheet: 'stickman-heavy-laugh-sheet',
-      frames: 16,
-      frameRate: 14
-    },
-
-    {
-      key: 'stickman-cry',
-      sheet: 'stickman-cry-sheet',
-      frames: 16,
-      frameRate: 9
-    },
-
-    {
-      key: 'stickman-angry',
-      sheet: 'stickman-angry-sheet',
-      frames: 16,
-      frameRate: 8
-    },
-
-    {
-      key: 'stickman-moderately_angry',
-      sheet: 'stickman-moderately-angry-sheet',
-      frames: 16,
-      frameRate: 8
-    }
-  ]
-
-  specs.forEach(spec => {
-
-    if (this.anims.exists(spec.key)) {
+  renderCharacter(graphics, sprite, player, color, isLocal = false) {
+    if (SPRITE_POSES.has(player.pose)) {
+      this.drawSpriteCharacter(graphics, sprite, player, color)
       return
     }
 
-    this.anims.create({
-
-      key: spec.key,
-
-      frames: this.anims.generateFrameNumbers(
-        spec.sheet,
-        {
-          start: 0,
-          end: spec.frames - 1
-        }
-      ),
-
-      frameRate: spec.frameRate,
-
-      repeat: -1
-    })
-  })
-}
-
-// =================================================
-// RENDER CHARACTER
-// =================================================
-
-renderCharacter(
-  graphics,
-  sprite,
-  player,
-  color,
-  isLocal = false
-) {
-
-  if (SPRITE_POSES.has(player.pose)) {
-
-    this.drawSpriteCharacter(
-      graphics,
-      sprite,
-      player,
-      color
-    )
-
-    return
+    sprite.setVisible(false)
+    this.drawCharacter(graphics, player, color, isLocal)
   }
 
-  sprite.setVisible(false)
+  // =================================================
+  // DRAW SPRITE CHARACTER
+  // =================================================
 
-  this.drawCharacter(
-    graphics,
-    player,
-    color,
-    isLocal
-  )
-}
+  drawSpriteCharacter(graphics, sprite, player, color) {
+    graphics.clear()
 
-// =================================================
-// DRAW SPRITE CHARACTER
-// =================================================
+    const poseMap = {
+      idle:             'stickman-idle',
+      walk:             'stickman-walk',
+      jump:             'stickman-jump',
+      laugh:            'stickman-laugh',
+      heavy_laugh:      'stickman-heavy_laugh',
+      cry:              'stickman-cry',
+      angry:            'stickman-angry',
+      moderately_angry: 'stickman-moderately_angry',
+    }
 
-drawSpriteCharacter(
-  graphics,
-  sprite,
-  player,
-  color
-) {
+    const key = poseMap[player.pose]
 
-  graphics.clear()
+    let scale = STICKMAN_SPRITE_SCALE
 
-  const poseMap = {
+    if (
+      player.pose === 'jump' ||
+      player.pose === 'laugh' ||
+      player.pose === 'heavy_laugh' ||
+      player.pose === 'cry' ||
+      player.pose === 'angry' ||
+      player.pose === 'moderately_angry'
+    ) {
+      scale = 0.9
+    }
 
-    idle: 'stickman-idle',
+    let offsetY = 0
 
-    walk: 'stickman-walk',
+    if (
+      player.pose === 'laugh' ||
+      player.pose === 'heavy_laugh' ||
+      player.pose === 'angry' ||
+      player.pose === 'moderately_angry'
+    ) {
+      offsetY = 30
+    }
 
-    jump: 'stickman-jump',
+    // FIX 2: This is the single authoritative place to set sprite position.
+    // The duplicate playerSprite.x/y assignment in update() has been removed.
+    sprite
+      .setVisible(true)
+      .setPosition(player.x, player.y + offsetY)
+      .setTint()
+      .setScale((player.facing || 1) * scale, scale)
 
-    laugh: 'stickman-laugh',
+    if (sprite.anims.currentAnim?.key !== key) {
+      sprite.play(key)
+    }
 
-    heavy_laugh: 'stickman-heavy_laugh',
+    if (player.pose === 'walk') {
+      sprite.anims.timeScale = Phaser.Math.Clamp(Math.abs(player.vx) / 1.5, 0.65, 1.1)
+    } else {
+      sprite.anims.timeScale = 1
+    }
 
-    cry: 'stickman-cry',
-
-    angry: 'stickman-angry',
-
-    moderately_angry:
-      'stickman-moderately_angry',
+    if (player.pose === 'cry') {
+      this.drawSpriteCryTears(graphics, player)
+    }
   }
 
-  const key = poseMap[player.pose]
+  // =================================================
+  // SPRITE CRY TEARS
+  // =================================================
 
-  let scale = STICKMAN_SPRITE_SCALE
+  drawSpriteCryTears(graphics, player) {
+    const phase  = (this.time.now / 900) % 1
+    const mirror = player.facing || 1
+    const headX  = player.x + mirror * 8 * STICKMAN_SPRITE_SCALE
+    const headY  = player.y - 127 * STICKMAN_SPRITE_SCALE
 
-if (
-  player.pose === 'jump' ||
-  player.pose === 'laugh' ||
-  player.pose === 'heavy_laugh' ||
-  player.pose === 'cry' ||
-  player.pose === 'angry' ||
-  player.pose === 'moderately_angry'
-) {
-  scale = 0.9
-}
+    graphics.fillStyle(0x4aa3ff, 0.88)
 
-let offsetY = 0
-
-if (
-  player.pose === 'laugh' ||
-  player.pose === 'heavy_laugh' ||
-  player.pose === 'angry' ||
-  player.pose === 'moderately_angry'
-) {
-  offsetY = 30
-}
-
-sprite
-  .setVisible(true)
-  .setPosition(
-    player.x,
-    player.y + offsetY
-  )
-  .setTint()
-  .setScale(
-    (player.facing || 1) * scale,
-    scale
-  )
-
-  if (
-    sprite.anims.currentAnim?.key !==
-    key
-  ) {
-    sprite.play(key)
+    for (let i = 0; i < 2; i++) {
+      const fall   = (phase + i * 0.5) % 1
+      const tearX  = headX + mirror * (i === 0 ? -7 : 7) * STICKMAN_SPRITE_SCALE
+      const tearY  = headY + (14 + fall * 52) * STICKMAN_SPRITE_SCALE
+      const radius = Math.max(1, 3.5 - fall * 2.4)
+      graphics.fillCircle(tearX, tearY, radius)
+    }
   }
-
-  if (player.pose === 'walk') {
-
-  sprite.anims.timeScale =
-    Phaser.Math.Clamp(
-      Math.abs(player.vx) / 1.5,
-      0.65,
-      1.1
-    )
-}
-
-else {
-
-  sprite.anims.timeScale = 1
-}
-
-  if (player.pose === 'cry') {
-    this.drawSpriteCryTears(
-      graphics,
-      player
-    )
-  }
-}
-
-// =================================================
-// SPRITE CRY TEARS
-// =================================================
-
-drawSpriteCryTears(
-  graphics,
-  player
-) {
-
-  const phase =
-    (this.time.now / 900) % 1
-
-  const mirror =
-    player.facing || 1
-
-  const headX =
-    player.x +
-    mirror *
-    8 *
-    STICKMAN_SPRITE_SCALE
-
-  const headY =
-    player.y -
-    127 *
-    STICKMAN_SPRITE_SCALE
-
-  graphics.fillStyle(
-    0x4aa3ff,
-    0.88
-  )
-
-  for (let i = 0; i < 2; i++) {
-
-    const fall =
-      (phase + i * 0.5) % 1
-
-    const tearX =
-      headX +
-      mirror *
-      (i === 0 ? -7 : 7) *
-      STICKMAN_SPRITE_SCALE
-
-    const tearY =
-      headY +
-      (14 + fall * 52) *
-      STICKMAN_SPRITE_SCALE
-
-    const radius =
-      Math.max(
-        1,
-        3.5 - fall * 2.4
-      )
-
-    graphics.fillCircle(
-      tearX,
-      tearY,
-      radius
-    )
-  }
-}
-  // =================================================
-  // IDLE
-  // =================================================
-
-  
-
-  // =================================================
-  // WALK — 4-phase gait with full IK legs
-  // =================================================
-
-
-  // =================================================
-  // RUN — aggressive lean, high knees, pumping arms
-  // =================================================
-
-
-  // =================================================
-  // JUMP — rising / peak / falling states
-  // =================================================
-
-  
-
-  // =================================================
-  // WAVE — 3-segment arm with wrist snap
-  // =================================================
-
-  // =================================================
-  // LAUGH — doubled-over, hands on knees
-  // =================================================
-
-
-
-  // =================================================
-  // CRY — hunched, bowed head, falling tears
-  // =================================================
-
-
 
   // =================================================
   // POINT — IK arm following cursor
@@ -707,7 +431,6 @@ drawSpriteCryTears(
 
     drawLine(graphics, shoulderX, shoulderY, elbowX, elbowY)
     drawLine(graphics, elbowX, elbowY, handX, handY)
-
     drawLine(graphics, x, chestY, x - 20, chestY + 14)
     drawLine(graphics, x - 20, chestY + 14, x - 12, chestY + 28)
 
@@ -738,21 +461,13 @@ drawSpriteCryTears(
     this.player.vx = Phaser.Math.Clamp(this.player.vx, -maxSpeed, maxSpeed)
     this.player.vx *= friction
 
-    
-   this.player.x += this.player.vx * dt * 4
-   if (this.player.x < 40) {
-  this.player.x = 40
-}
+    this.player.x += this.player.vx * dt * 4
 
-if (this.player.x > WORLD_WIDTH - 40) {
-  this.player.x = WORLD_WIDTH - 40
-}
+    if (this.player.x < 40)              this.player.x = 40
+    if (this.player.x > WORLD_WIDTH - 40) this.player.x = WORLD_WIDTH - 40
 
-  
-this.playerSprite.x = this.player.x
-this.playerSprite.y = this.player.y
-  
-
+    // FIX 2 (removed): duplicate this.playerSprite.x / .y assignments
+    // were here — deleted. drawSpriteCharacter handles positioning.
 
     if (this.keys.jump.isDown && this.player.grounded) {
       this.player.vy = running ? -9 : -7
@@ -761,7 +476,6 @@ this.playerSprite.y = this.player.y
 
     this.player.vy += 0.32 * dt
     this.player.y  += this.player.vy * dt * 3
-    
 
     if (this.player.y >= this.groundY) {
       if (!this.player.grounded && Math.abs(this.player.vy) > 3) {
@@ -772,69 +486,35 @@ this.playerSprite.y = this.player.y
       this.player.y        = this.groundY
       this.player.vy       = 0
       this.player.grounded = true
-      
     }
 
     // =================================================
     // POSE SELECTION
     // =================================================
+
     if (this.keys.point.isDown) {
-
-  this.player.pose = 'point'
-}
-
-
-
-else if (this.keys.heavyLaugh.isDown) {
-
-  this.player.pose = 'heavy_laugh'
-}
-
-else if (this.keys.laugh.isDown) {
-
-  this.player.pose = 'laugh'
-}
-
-else if (this.keys.cry.isDown) {
-
-  this.player.pose = 'cry'
-}
-
-else if (this.keys.angry.isDown) {
-
-  this.player.pose = 'angry'
-}
-
-else if (
-  this.keys.moderatelyAngry.isDown
-) {
-
-  this.player.pose =
-    'moderately_angry'
-}
-
-else if (!this.player.grounded) {
-
-  this.player.pose = 'jump'
-}
-
-else if (
-  Math.abs(this.player.vx) > 0.15
-) {
-
-  this.player.pose = 'walk'
-}
-
-else {
-
-  this.player.pose = 'idle'
-}
+      this.player.pose = 'point'
+    } else if (this.keys.heavyLaugh.isDown) {
+      this.player.pose = 'heavy_laugh'
+    } else if (this.keys.laugh.isDown) {
+      this.player.pose = 'laugh'
+    } else if (this.keys.cry.isDown) {
+      this.player.pose = 'cry'
+    } else if (this.keys.angry.isDown) {
+      this.player.pose = 'angry'
+    } else if (this.keys.moderatelyAngry.isDown) {
+      this.player.pose = 'moderately_angry'
+    } else if (!this.player.grounded) {
+      this.player.pose = 'jump'
+    } else if (Math.abs(this.player.vx) > 0.15) {
+      this.player.pose = 'walk'
+    } else {
+      this.player.pose = 'idle'
+    }
 
     this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
 
     this.nameText.setPosition(this.player.x, this.player.y - 165)
-
-    
 
     for (const id in this.remotePlayers) {
       const remote = this.remotePlayers[id]
@@ -867,7 +547,6 @@ else {
       animTime:   this.player.animTime,
       pointAngle: this.player.pointAngle,
       name:       this.name,
-      
     })
   }
 
@@ -898,8 +577,6 @@ else {
     }
   }
 
-  
-
   createRemotePlayer(data) {
     if (this.remotePlayers[data.id]) return
 
@@ -923,8 +600,7 @@ else {
       animTime:   data.animTime || 0,
       walkCycle:  0,
       pointAngle: data.pointAngle || 0,
-      elbowSide:  data.elbowSide || 1,
-      
+      elbowSide:  data.elbowSide  || 1,
       name:       data.name,
       squashY: 1, squashX: 1,
       tearTimer: 0,
