@@ -221,18 +221,18 @@ class MainScene extends Phaser.Scene {
     tunerDiv.id = 'anim-tuner'
     tunerDiv.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:16px;align-items:center;background:rgba(255,255,255,0.9);padding:6px 14px;border-radius:8px;font-family:Arial;font-size:13px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.15)'
 
-    tunerDiv.innerHTML = ''
-      + '<label style="color:#555">Emote Offset:'
-      + '  <input id="emote-nudge" type="range" min="-100" max="100" step="1" value="38"'
-      + '    style="width:100px;margin:0 6px">'
-      + '  <span id="emote-nudge-val">38</span>px'
-      + '</label>'
-      + '<label style="color:#555">Emote Scale:'
-      + '  <input id="emote-scale" type="range" min="0.5" max="2.5" step="0.01" value="1.35"'
-      + '    style="width:100px;margin:0 6px">'
-      + '  <span id="emote-scale-val">1.35</span>x'
-      + '</label>'
-    ;
+    tunerDiv.innerHTML = `
+      <label style="color:#555">Emote Offset:
+        <input id="emote-nudge" type="range" min="-100" max="100" step="1" value="38"
+          style="width:100px;margin:0 6px">
+        <span id="emote-nudge-val">38</span>px
+      </label>
+      <label style="color:#555">Emote Scale:
+        <input id="emote-scale" type="range" min="0.5" max="2.5" step="0.01" value="1.35"
+          style="width:100px;margin:0 6px">
+        <span id="emote-scale-val">1.35</span>x
+      </label>
+    `
     document.body.appendChild(tunerDiv)
 
     document.getElementById('emote-nudge').addEventListener('input', (e) => {
@@ -371,14 +371,14 @@ class MainScene extends Phaser.Scene {
     const key = poseMap[player.pose]
 
     // Per-pose scale — live-tunable via the on-screen sliders
-    const isEmotePose = !['idle','walk','jump'].includes(player.pose)
+    const isEmotePose = !['idle','walk'].includes(player.pose)
     const scale = STICKMAN_SPRITE_SCALE * (isEmotePose ? (this.emoteScale ?? 1.35) : 1.0)
 
     // Base feet alignment: shift sprite up so feet pixel (SPRITE_FEET_Y) sits on player.y
     const feetOffsetY = (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
 
     // Per-pose vertical nudge — live-tunable via the on-screen sliders
-    const isEmote = !['idle','walk','jump'].includes(player.pose)
+    const isEmote = !['idle','walk'].includes(player.pose)
     const nudge = isEmote ? (this.emoteNudge ?? 38) : 0
     const posY = player.y - feetOffsetY + nudge
 
