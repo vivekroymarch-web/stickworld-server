@@ -231,9 +231,11 @@ class MainScene extends Phaser.Scene {
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
-    // FIX 1: Tighter deadzone so camera follows the player properly
-    this.cameras.main.startFollow(this.playerSprite, true, 0.18, 0.18)
-    this.cameras.main.setDeadzone(80, 60)
+    // Camera target: a dedicated invisible object always synced to player.x/y
+    // This avoids the camera losing the player when the sprite pose changes
+    this.cameraTarget = this.add.rectangle(this.player.x, this.player.y, 1, 1, 0x000000, 0)
+    this.cameras.main.startFollow(this.cameraTarget, true, 0.15, 0.15)
+    // No deadzone — camera tracks immediately
 
     // =================================================
     // NETWORK
@@ -511,6 +513,9 @@ class MainScene extends Phaser.Scene {
     } else {
       this.player.pose = 'idle'
     }
+
+    // Always keep camera target in sync with player — regardless of pose/sprite state
+    this.cameraTarget.setPosition(this.player.x, this.player.y)
 
     this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
 
