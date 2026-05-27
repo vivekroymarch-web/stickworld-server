@@ -232,6 +232,8 @@ this.cameras.main.setBounds(
 
     this.playerGraphics = this.add.graphics()
     this.playerSprite = this.createCharacterSprite()
+    this.playerSprite.setScrollFactor(1)
+this.playerSprite.setDepth(10)
     this.createSpriteAnimations()
 
     // =================================================
@@ -335,10 +337,7 @@ createCharacterSprite() {
     0,
     'stickman-idle-sheet'
   )
-  .setOrigin(
-    0.5,
-    SPRITE_FEET_Y / SPRITE_FRAME_SIZE
-  )
+  .setOrigin(0.5, 0.5)
   .setScale(STICKMAN_SPRITE_SCALE)
   .setVisible(false)
 }
@@ -529,9 +528,9 @@ if (
 sprite
   .setVisible(true)
   .setPosition(
-    player.x,
-    player.y + offsetY
-  )
+  player.x,
+  player.y - 90 + offsetY
+)
   .setTint()
   .setScale(
     (player.facing || 1) * scale,
@@ -741,12 +740,15 @@ drawSpriteCryTears(
 
     
    this.player.x += this.player.vx * dt * 4
+   if (this.player.x < 40) {
+  this.player.x = 40
+}
 
-  this.player.x = Phaser.Math.Clamp(
-  this.player.x,
-  40,
-  WORLD_WIDTH - 40
-)
+if (this.player.x > WORLD_WIDTH - 40) {
+  this.player.x = WORLD_WIDTH - 40
+}
+
+  
 this.playerSprite.x = this.player.x
 this.playerSprite.y = this.player.y
   
