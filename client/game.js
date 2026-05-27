@@ -213,8 +213,8 @@ class MainScene extends Phaser.Scene {
     // ANIM TUNER — inject sliders into the page
     // =================================================
 
-    this.emoteNudge = 38
-    this.emoteScale = 1.35
+    this.emoteNudge = 35
+    this.emoteScale = 1.65
 
     // Build tuner UI and inject it next to the name input
     const tunerDiv = document.createElement('div')
@@ -224,13 +224,13 @@ class MainScene extends Phaser.Scene {
     tunerDiv.innerHTML = `
       <span style="color:#555">Emote Offset:</span>
       <button id="nudge-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
-      <input id="emote-nudge" type="number" value="38" step="1"
+      <input id="emote-nudge" type="number" value="35" step="1"
         style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
       <button id="nudge-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
       <span style="color:#bbb;margin:0 4px">|</span>
       <span style="color:#555">Emote Scale:</span>
       <button id="scale-down" style="width:24px;height:24px;cursor:pointer;font-size:14px">-</button>
-      <input id="emote-scale" type="number" value="1.35" step="0.01"
+      <input id="emote-scale" type="number" value="1.65" step="0.01"
         style="width:52px;text-align:center;font-size:13px;border:1px solid #ccc;border-radius:4px;padding:2px 4px">
       <button id="scale-up" style="width:24px;height:24px;cursor:pointer;font-size:14px">+</button>
     `
@@ -390,14 +390,14 @@ class MainScene extends Phaser.Scene {
 
     // Per-pose scale — live-tunable via the on-screen sliders
     const isEmotePose = !['idle','walk'].includes(player.pose)
-    const scale = STICKMAN_SPRITE_SCALE * (isEmotePose ? (this.emoteScale ?? 1.35) : 1.0)
+    const scale = STICKMAN_SPRITE_SCALE * (isEmotePose ? (this.emoteScale ?? 1.65) : 1.0)
 
     // Base feet alignment: shift sprite up so feet pixel (SPRITE_FEET_Y) sits on player.y
     const feetOffsetY = (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
 
     // Per-pose vertical nudge — live-tunable via the on-screen sliders
     const isEmote = !['idle','walk'].includes(player.pose)
-    const nudge = isEmote ? (this.emoteNudge ?? 38) : 0
+    const nudge = isEmote ? (this.emoteNudge ?? 35) : 0
     const posY = player.y - feetOffsetY + nudge
 
     sprite
@@ -497,9 +497,6 @@ class MainScene extends Phaser.Scene {
     if (this.player.x < 40)              this.player.x = 40
     if (this.player.x > WORLD_WIDTH - 40) this.player.x = WORLD_WIDTH - 40
 
-    // FIX 2 (removed): duplicate this.playerSprite.x / .y assignments
-    // were here — deleted. drawSpriteCharacter handles positioning.
-
     if (this.keys.jump.isDown && this.player.grounded) {
       this.player.vy = running ? -9 : -7
       this.player.grounded = false
@@ -543,7 +540,6 @@ class MainScene extends Phaser.Scene {
       this.player.pose = 'idle'
     }
 
-    // Always keep camera target in sync with player — regardless of pose/sprite state
     // Edge-scroll: move camera so player stays within [margin, screenW-margin]
     const screenW       = this.scale.width
     const margin        = screenW * 0.15
@@ -589,7 +585,6 @@ class MainScene extends Phaser.Scene {
       const ey = circleCenterY + Math.sin(this.emojiAngle) * radius
 
       // Rotate emoji text to face outward (pointing away from character)
-      // Add small flip correction so emoji always reads correctly
       let deg = Phaser.Math.RadToDeg(this.emojiAngle)
       let flipX = 1
       if (deg > 90 || deg < -90) {
