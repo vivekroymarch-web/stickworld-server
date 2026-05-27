@@ -334,15 +334,26 @@ class MainScene extends Phaser.Scene {
 
     const key = poseMap[player.pose]
 
-    // Always use the same scale for all poses so feet stay on the ground
+    // All poses use the same scale so size never changes
     const scale = STICKMAN_SPRITE_SCALE
 
-    // Align sprite so feet (at SPRITE_FEET_Y in the sheet) sit exactly on player.y (ground)
-    // sprite origin is (0.5, 0.5) = center of 256px frame
-    // feet pixel in sheet = SPRITE_FEET_Y (228), so offset from center = SPRITE_FEET_Y - 128 = 100
-    // multiply by scale to get world pixels, then shift sprite UP by that amount
+    // Base feet alignment: shift sprite up so feet pixel (SPRITE_FEET_Y) sits on player.y
     const feetOffsetY = (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
-    const posY = player.y - feetOffsetY
+
+    // Per-pose vertical nudge to compensate for character drawn higher in the frame
+    // (emote animations draw the character smaller/higher inside the 256px sheet)
+    const poseNudge = {
+      idle:             0,
+      walk:             0,
+      jump:             0,
+      laugh:           -38,
+      heavy_laugh:     -38,
+      cry:             -38,
+      angry:           -38,
+      moderately_angry:-38,
+    }
+    const nudge = (poseNudge[player.pose] ?? 0)
+    const posY = player.y - feetOffsetY + nudge
 
     sprite
       .setVisible(true)
@@ -525,10 +536,12 @@ class MainScene extends Phaser.Scene {
       // Smoothly rotate emoji angle toward cursor angle
       this.emojiAngle = Phaser.Math.Angle.RotateTo(this.emojiAngle, targetAngle, 0.18)
 
-      // Place emoji on a circle of radius 80 around the character
+      // Place emoji on a circle centered at mid-body (half the character height above ground)
+      const charHeight = SPRITE_FEET_Y * STICKMAN_SPRITE_SCALE  // ~125px
+      const circleCenterY = this.player.y - charHeight * 0.5    // mid-body
       const radius = 80
       const ex = this.player.x + Math.cos(this.emojiAngle) * radius
-      const ey = this.player.y + Math.sin(this.emojiAngle) * radius
+      const ey = circleCenterY + Math.sin(this.emojiAngle) * radius
 
       // Rotate emoji text to face outward (pointing away from character)
       // Add small flip correction so emoji always reads correctly
