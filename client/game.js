@@ -251,7 +251,8 @@ class MainScene extends Phaser.Scene {
     // This avoids the camera losing the player when the sprite pose changes
     this.cameraTarget = this.add.rectangle(this.player.x, this.player.y, 1, 1, 0x000000, 0)
     this.cameras.main.startFollow(this.cameraTarget, true, 0.15, 0.15)
-    // No deadzone — camera tracks immediately
+    this.cameras.main.setDeadzone(window.innerWidth * 0.7, window.innerHeight * 0.8)
+
 
     // =================================================
     // NETWORK
