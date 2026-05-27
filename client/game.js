@@ -530,15 +530,19 @@ class MainScene extends Phaser.Scene {
     }
 
     // Always keep camera target in sync with player — regardless of pose/sprite state
-    // Edge-scroll logic: scroll camera only when player is within 15% of screen edges
-    const screenW   = this.scale.width
-    const margin    = screenW * 0.15
+    // Edge-scroll: camera scrolls only when player is within 15% of either screen edge
+    const screenW      = this.scale.width
+    const margin       = screenW * 0.15
     const playerScreenX = this.player.x - this.scrollX
+
     if (playerScreenX > screenW - margin) {
-      this.scrollX = this.player.x - (screenW - margin)
+      // Player near RIGHT edge — scroll world left
+      this.scrollX += (playerScreenX - (screenW - margin))
     } else if (playerScreenX < margin) {
-      this.scrollX = this.player.x - margin
+      // Player near LEFT edge — scroll world right
+      this.scrollX -= (margin - playerScreenX)
     }
+
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
     this.debugText.setText(`X: ${Math.round(this.player.x)}  vx: ${this.player.vx.toFixed(2)}`)
