@@ -166,18 +166,24 @@ this.load.spritesheet(
   WORLD_WIDTH,
   this.scale.height
 )
+this.cameras.main.setBounds(
+  0,
+  0,
+  WORLD_WIDTH,
+  this.scale.height
+)
 
     // =================================================
     // BACKGROUND
     // =================================================
 
     this.add.rectangle(
-  WORLD_WIDTH / 2,
-  this.scale.height / 2,
+  0,
+  0,
   WORLD_WIDTH,
   this.scale.height,
   0xfafafa
-)
+).setOrigin(0)
 
     // =================================================
     // GROUND
@@ -286,21 +292,20 @@ moderatelyAngry:
     ).setScrollFactor(0)
 
     
-
-this.cameras.main.startFollow(
+ this.cameras.main.startFollow(
   this.playerSprite,
   true,
-  0.08,
-  0.08
+  0.18,
+  0.18
+)
+
+this.cameras.main.setDeadzone(
+  window.innerWidth * 0.3,
+  window.innerHeight * 0.25
 )
 
     
-    this.cameras.main.setBounds(
-  0,
-  0,
-  WORLD_WIDTH,
-  this.scale.height
-)
+    
 
     // =================================================
     // NETWORK
@@ -742,6 +747,8 @@ drawSpriteCryTears(
   40,
   WORLD_WIDTH - 40
 )
+this.playerSprite.x = this.player.x
+this.playerSprite.y = this.player.y
   
 
 
