@@ -247,11 +247,9 @@ class MainScene extends Phaser.Scene {
       { fontFamily: 'Arial', fontSize: '13px', color: '#888888' }
     ).setScrollFactor(0)
 
-    // Camera target: a dedicated invisible object always synced to player.x/y
-    // This avoids the camera losing the player when the sprite pose changes
-    this.cameraTarget = this.add.rectangle(this.player.x, this.player.y, 1, 1, 0x000000, 0)
-    this.cameras.main.startFollow(this.cameraTarget, true, 0.15, 0.15)
-    this.cameras.main.setDeadzone(window.innerWidth * 0.7, window.innerHeight * 0.8)
+    // Manual edge-scroll: camera only moves when player is near screen edges
+    this.scrollX = 0
+    this.cameras.main.setScroll(0, 0)
 
 
     // =================================================
@@ -532,7 +530,17 @@ class MainScene extends Phaser.Scene {
     }
 
     // Always keep camera target in sync with player — regardless of pose/sprite state
-    this.cameraTarget.setPosition(this.player.x, this.player.y)
+    // Edge-scroll logic: scroll camera only when player is within 15% of screen edges
+    const screenW   = this.scale.width
+    const margin    = screenW * 0.15
+    const playerScreenX = this.player.x - this.scrollX
+    if (playerScreenX > screenW - margin) {
+      this.scrollX = this.player.x - (screenW - margin)
+    } else if (playerScreenX < margin) {
+      this.scrollX = this.player.x - margin
+    }
+    this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
+    this.cameras.main.setScroll(this.scrollX, 0)
     this.debugText.setText(`X: ${Math.round(this.player.x)}  vx: ${this.player.vx.toFixed(2)}`)
 
     this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
