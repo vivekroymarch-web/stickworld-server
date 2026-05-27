@@ -462,9 +462,9 @@ class MainScene extends Phaser.Scene {
   update(_, delta) {
     const dt       = delta / 16.666
     const running  = this.keys.run.isDown
-    const accel    = running ? 0.65 : 0.45
-    const maxSpeed = running ? 7.0  : 4.0
-    const friction = 0.88
+    const accel    = running ? 0.40 : 0.24
+    const maxSpeed = running ? 4.2  : 2.0
+    const friction = 0.82
 
     if (this.keys.left.isDown) {
       this.player.vx -= accel * dt
