@@ -334,23 +334,33 @@ class MainScene extends Phaser.Scene {
 
     const key = poseMap[player.pose]
 
-    // All poses use the same scale so size never changes
-    const scale = STICKMAN_SPRITE_SCALE
+    // Per-pose scale to match idle character size
+    // Emote sheets have the character drawn smaller inside the frame, so scale them up
+    const poseScale = {
+      idle:             1.0,
+      walk:             1.0,
+      jump:             1.0,
+      laugh:            1.35,
+      heavy_laugh:      1.35,
+      cry:              1.35,
+      angry:            1.35,
+      moderately_angry: 1.35,
+    }
+    const scale = STICKMAN_SPRITE_SCALE * (poseScale[player.pose] ?? 1.0)
 
     // Base feet alignment: shift sprite up so feet pixel (SPRITE_FEET_Y) sits on player.y
     const feetOffsetY = (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
 
     // Per-pose vertical nudge to compensate for character drawn higher in the frame
-    // (emote animations draw the character smaller/higher inside the 256px sheet)
     const poseNudge = {
       idle:             0,
       walk:             0,
       jump:             0,
-      laugh:           -38,
-      heavy_laugh:     -38,
-      cry:             -38,
-      angry:           -38,
-      moderately_angry:-38,
+      laugh:            38,
+      heavy_laugh:      38,
+      cry:              38,
+      angry:            38,
+      moderately_angry: 38,
     }
     const nudge = (poseNudge[player.pose] ?? 0)
     const posY = player.y - feetOffsetY + nudge
