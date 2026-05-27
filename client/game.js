@@ -153,15 +153,6 @@ class MainScene extends Phaser.Scene {
 
     this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0)
 
-    // Landmark posts every 300px so movement is visually obvious
-    for (let px = 0; px < WORLD_WIDTH; px += 300) {
-      const tileColor = (Math.floor(px / 300) % 2 === 0) ? 0xe8e8e8 : 0xd8d8d8
-      this.add.rectangle(px, this.groundY + 1, 300, 80, tileColor).setOrigin(0, 0)
-      this.add.rectangle(px, this.groundY - 44, 4, 46, 0xaaaaaa).setOrigin(0.5, 0)
-      this.add.text(px, this.groundY + 10, `x:${px}`, {
-        fontFamily: 'Arial', fontSize: '13px', color: '#999999'
-      }).setOrigin(0.5, 0)
-    }
 
     // =================================================
     // PLAYER
@@ -233,12 +224,6 @@ class MainScene extends Phaser.Scene {
       20, 20,
       'Players Online: 1',
       { fontFamily: 'Arial', fontSize: '20px', color: '#111111' }
-    ).setScrollFactor(0)
-
-    this.debugText = this.add.text(
-      20, 75,
-      'X: 0',
-      { fontFamily: 'Arial', fontSize: '14px', color: '#cc4400' }
     ).setScrollFactor(0)
 
     this.controlsText = this.add.text(
@@ -544,7 +529,7 @@ class MainScene extends Phaser.Scene {
 
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
-    this.debugText.setText(`worldX:${Math.round(this.player.x)}  screenX:${Math.round(this.player.x - this.scrollX)}  camX:${Math.round(this.scrollX)}`)
+
 
     this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
 
