@@ -238,6 +238,17 @@ class MainScene extends Phaser.Scene {
 
 
     // =================================================
+    // EMOJI POINTER SETUP
+    // =================================================
+
+    // Emoji on a circle around the character, pointing at cursor
+    this.emojiPointer = this.add.text(0, 0, '👉', {
+      fontSize: '28px'
+    }).setOrigin(0.5, 0.5).setVisible(false).setDepth(20)
+
+    this.emojiAngle = 0  // current angle on the circle (radians)
+
+    // =================================================
     // NETWORK
     // =================================================
 
@@ -323,35 +334,19 @@ class MainScene extends Phaser.Scene {
 
     const key = poseMap[player.pose]
 
-    let scale = STICKMAN_SPRITE_SCALE
+    // Always use the same scale for all poses so feet stay on the ground
+    const scale = STICKMAN_SPRITE_SCALE
 
-    if (
-      player.pose === 'jump' ||
-      player.pose === 'laugh' ||
-      player.pose === 'heavy_laugh' ||
-      player.pose === 'cry' ||
-      player.pose === 'angry' ||
-      player.pose === 'moderately_angry'
-    ) {
-      scale = 0.9
-    }
+    // Align sprite so feet (at SPRITE_FEET_Y in the sheet) sit exactly on player.y (ground)
+    // sprite origin is (0.5, 0.5) = center of 256px frame
+    // feet pixel in sheet = SPRITE_FEET_Y (228), so offset from center = SPRITE_FEET_Y - 128 = 100
+    // multiply by scale to get world pixels, then shift sprite UP by that amount
+    const feetOffsetY = (SPRITE_FEET_Y - SPRITE_FRAME_SIZE / 2) * scale
+    const posY = player.y - feetOffsetY
 
-    let offsetY = 0
-
-    if (
-      player.pose === 'laugh' ||
-      player.pose === 'heavy_laugh' ||
-      player.pose === 'angry' ||
-      player.pose === 'moderately_angry'
-    ) {
-      offsetY = 30
-    }
-
-    // FIX 2: This is the single authoritative place to set sprite position.
-    // The duplicate playerSprite.x/y assignment in update() has been removed.
     sprite
       .setVisible(true)
-      .setPosition(player.x, player.y + offsetY)
+      .setPosition(player.x, posY)
       .setTint()
       .setScale((player.facing || 1) * scale, scale)
 
@@ -365,31 +360,9 @@ class MainScene extends Phaser.Scene {
       sprite.anims.timeScale = 1
     }
 
-    if (player.pose === 'cry') {
-      this.drawSpriteCryTears(graphics, player)
-    }
   }
 
-  // =================================================
-  // SPRITE CRY TEARS
-  // =================================================
 
-  drawSpriteCryTears(graphics, player) {
-    const phase  = (this.time.now / 900) % 1
-    const mirror = player.facing || 1
-    const headX  = player.x + mirror * 8 * STICKMAN_SPRITE_SCALE
-    const headY  = player.y - 127 * STICKMAN_SPRITE_SCALE
-
-    graphics.fillStyle(0x4aa3ff, 0.88)
-
-    for (let i = 0; i < 2; i++) {
-      const fall   = (phase + i * 0.5) % 1
-      const tearX  = headX + mirror * (i === 0 ? -7 : 7) * STICKMAN_SPRITE_SCALE
-      const tearY  = headY + (14 + fall * 52) * STICKMAN_SPRITE_SCALE
-      const radius = Math.max(1, 3.5 - fall * 2.4)
-      graphics.fillCircle(tearX, tearY, radius)
-    }
-  }
 
   // =================================================
   // POINT — IK arm following cursor
@@ -495,7 +468,7 @@ class MainScene extends Phaser.Scene {
     // =================================================
 
     if (this.keys.point.isDown) {
-      this.player.pose = 'point'
+      this.player.pose = 'idle'  // character stays idle while pointing
     } else if (this.keys.heavyLaugh.isDown) {
       this.player.pose = 'heavy_laugh'
     } else if (this.keys.laugh.isDown) {
@@ -530,6 +503,53 @@ class MainScene extends Phaser.Scene {
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
 
+
+    // =================================================
+    // EMOJI POINTER UPDATE
+    // =================================================
+
+    if (this.keys.point.isDown) {
+      // Hide real cursor
+      this.game.canvas.style.cursor = 'none'
+
+      // Get cursor world position
+      const ptr = this.input.activePointer
+      const cursorWorldX = ptr.x + this.scrollX
+      const cursorWorldY = ptr.y
+
+      // Angle from player to cursor
+      const dx = cursorWorldX - this.player.x
+      const dy = cursorWorldY - this.player.y
+      const targetAngle = Math.atan2(dy, dx)
+
+      // Smoothly rotate emoji angle toward cursor angle
+      this.emojiAngle = Phaser.Math.Angle.RotateTo(this.emojiAngle, targetAngle, 0.18)
+
+      // Place emoji on a circle of radius 80 around the character
+      const radius = 80
+      const ex = this.player.x + Math.cos(this.emojiAngle) * radius
+      const ey = this.player.y + Math.sin(this.emojiAngle) * radius
+
+      // Rotate emoji text to face outward (pointing away from character)
+      // Add small flip correction so emoji always reads correctly
+      let deg = Phaser.Math.RadToDeg(this.emojiAngle)
+      let flipX = 1
+      if (deg > 90 || deg < -90) {
+        flipX = -1
+        deg += 180
+      }
+
+      this.emojiPointer
+        .setVisible(true)
+        .setPosition(ex, ey)
+        .setRotation(Phaser.Math.DegToRad(deg))
+        .setScale(flipX, 1)
+
+    } else {
+      // Restore cursor and hide emoji
+      this.game.canvas.style.cursor = 'default'
+      this.emojiPointer.setVisible(false)
+    }
 
     this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
 
