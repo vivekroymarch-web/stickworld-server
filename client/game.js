@@ -1707,7 +1707,7 @@ window._applyBg = function(scrollX = 0) {
   _bgDiv.style.backgroundImage = `url('assets/background.png')`
   _bgDiv.style.backgroundRepeat = 'no-repeat'
   _bgDiv.style.backgroundSize = `${window._bgSize}%`
-  _bgDiv.style.backgroundPosition = `calc(${window._bgPosX}% - ${scrollX * 0.15}px) ${window._bgPosY}%`
+  _bgDiv.style.backgroundPosition = `calc(${window._bgPosX}% - ${scrollX}px) ${window._bgPosY}%`
 }
 window._applyBg()
 
