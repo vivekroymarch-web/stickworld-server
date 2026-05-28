@@ -145,6 +145,70 @@ class MainScene extends Phaser.Scene {
 
   create() {
     console.log("CREATE RUNNING")
+
+    this.role = 'player'
+
+    const loginOverlay = document.createElement('div')
+    loginOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;'
+    
+    const loginBox = document.createElement('div')
+    loginBox.style.cssText = 'background:white; padding:30px; border-radius:10px; text-align:center; font-family:Arial;'
+    loginBox.innerHTML = `
+      <h2>Select Role</h2>
+      <button id="btn-player" style="margin:10px; padding:10px 20px; font-size:16px; cursor:pointer;">Player</button>
+      <button id="btn-editor" style="margin:10px; padding:10px 20px; font-size:16px; cursor:pointer;">Editor</button>
+      <div id="login-form" style="margin-top:20px; display:none;">
+         <input type="text" id="login-input" placeholder="" style="padding:8px; font-size:16px; width:200px;" />
+         <br><br>
+         <button id="btn-proceed" style="padding:8px 20px; font-size:16px; cursor:pointer;">Proceed</button>
+      </div>
+    `
+    loginOverlay.appendChild(loginBox)
+    document.body.appendChild(loginOverlay)
+
+    let selectedRole = null
+
+    document.getElementById('btn-player').onclick = () => {
+       selectedRole = 'player'
+       document.getElementById('login-form').style.display = 'block'
+       document.getElementById('login-input').placeholder = 'Enter Name'
+       document.getElementById('login-input').type = 'text'
+       document.getElementById('login-input').value = ''
+       document.getElementById('login-input').focus()
+    }
+
+    document.getElementById('btn-editor').onclick = () => {
+       selectedRole = 'editor'
+       document.getElementById('login-form').style.display = 'block'
+       document.getElementById('login-input').placeholder = 'Enter Password'
+       document.getElementById('login-input').type = 'password'
+       document.getElementById('login-input').value = ''
+       document.getElementById('login-input').focus()
+    }
+
+    document.getElementById('btn-proceed').onclick = () => {
+       const val = document.getElementById('login-input').value.trim()
+       if (selectedRole === 'editor') {
+          if (val !== 'qwerty') {
+             alert('Incorrect password!')
+             return
+          }
+       } else {
+          if (val) this.name = val
+       }
+       loginOverlay.remove()
+       this.role = selectedRole
+       
+       if (this.role === 'editor') {
+          const settingsBtn = document.getElementById('settings-btn')
+          if (settingsBtn) settingsBtn.style.display = 'block'
+       }
+       
+       if (this.nameInput) this.nameInput.value = this.name
+       this.nameText.setText(this.name)
+       this.sendPacket('join')
+    }
+
     this.groundY = this.scale.height - 91
     this.game.canvas.style.imageRendering = 'pixelated'
 
@@ -183,19 +247,294 @@ class MainScene extends Phaser.Scene {
     this.pathEditorEnabled = false
 
     this.mushroomPath = [
-  { x: 1977, y: 907.5 },
-  { x: 1938, y: 871.5 },
-  { x: 1909, y: 849.5 },
-  { x: 1872, y: 800.5 },
-  { x: 1540, y: 799.5 },
-  { x: 1980, y: 795.5 },
-  { x: 2214, y: 791.5 },
-  { x: 2427, y: 788.5 },
-  { x: 2718, y: 787.5 },
-  { x: 2934, y: 786.5 },
-  { x: 3153, y: 782.5 },
-  { x: 3368, y: 781.5 },
-  { x: 3459, y: 780.5 }
+  {
+    "x": 1953,
+    "y": 912.5
+  },
+  {
+    "x": 1930,
+    "y": 888.5
+  },
+  {
+    "x": 1875,
+    "y": 879.5
+  },
+  {
+    "x": 1835,
+    "y": 867.5
+  },
+  {
+    "x": 1815,
+    "y": 849.5
+  },
+  {
+    "x": 1779,
+    "y": 841.5
+  },
+  {
+    "x": 1735,
+    "y": 837.5
+  },
+  {
+    "x": 1685,
+    "y": 837.5
+  },
+  {
+    "x": 1631,
+    "y": 834.5
+  },
+  {
+    "x": 1577,
+    "y": 827.5
+  },
+  {
+    "x": 1614,
+    "y": 806.5
+  },
+  {
+    "x": 1640,
+    "y": 805.5
+  },
+  {
+    "x": 1666,
+    "y": 804.5
+  },
+  {
+    "x": 1708,
+    "y": 805.5
+  },
+  {
+    "x": 1734,
+    "y": 810.5
+  },
+  {
+    "x": 1768,
+    "y": 814.5
+  },
+  {
+    "x": 1788,
+    "y": 814.5
+  },
+  {
+    "x": 1830,
+    "y": 818.5
+  },
+  {
+    "x": 1861,
+    "y": 822.5
+  },
+  {
+    "x": 1889,
+    "y": 823.5
+  },
+  {
+    "x": 1908,
+    "y": 826.5
+  },
+  {
+    "x": 1932,
+    "y": 828.5
+  },
+  {
+    "x": 1953,
+    "y": 828.5
+  },
+  {
+    "x": 2005,
+    "y": 827.5
+  },
+  {
+    "x": 2029,
+    "y": 831.5
+  },
+  {
+    "x": 2096,
+    "y": 833.5
+  },
+  {
+    "x": 2135,
+    "y": 831.5
+  },
+  {
+    "x": 2186,
+    "y": 830.5
+  },
+  {
+    "x": 2244,
+    "y": 831.5
+  },
+  {
+    "x": 2286,
+    "y": 832.5
+  },
+  {
+    "x": 2333,
+    "y": 833.5
+  },
+  {
+    "x": 2382,
+    "y": 834.5
+  },
+  {
+    "x": 2410,
+    "y": 835.5
+  },
+  {
+    "x": 2435,
+    "y": 821.5
+  },
+  {
+    "x": 2465,
+    "y": 821.5
+  },
+  {
+    "x": 2495,
+    "y": 821.5
+  },
+  {
+    "x": 2530,
+    "y": 824.5
+  },
+  {
+    "x": 2553,
+    "y": 824.5
+  },
+  {
+    "x": 2604,
+    "y": 825.5
+  },
+  {
+    "x": 2655,
+    "y": 824.5
+  },
+  {
+    "x": 2699,
+    "y": 823.5
+  },
+  {
+    "x": 2728,
+    "y": 822.5
+  },
+  {
+    "x": 2778,
+    "y": 812.5
+  },
+  {
+    "x": 2845,
+    "y": 815.5
+  },
+  {
+    "x": 2879,
+    "y": 813.5
+  },
+  {
+    "x": 2918,
+    "y": 813.5
+  },
+  {
+    "x": 2960,
+    "y": 813.5
+  },
+  {
+    "x": 2996,
+    "y": 813.5
+  },
+  {
+    "x": 3050,
+    "y": 812.5
+  },
+  {
+    "x": 3091,
+    "y": 814.5
+  },
+  {
+    "x": 3125,
+    "y": 814.5
+  },
+  {
+    "x": 3158,
+    "y": 811.5
+  },
+  {
+    "x": 3197,
+    "y": 809.5
+  },
+  {
+    "x": 3236,
+    "y": 808.5
+  },
+  {
+    "x": 3278,
+    "y": 807.5
+  },
+  {
+    "x": 3344,
+    "y": 812.5
+  },
+  {
+    "x": 3372,
+    "y": 813.5
+  },
+  {
+    "x": 3416,
+    "y": 816.5
+  },
+  {
+    "x": 3443,
+    "y": 814.5
+  },
+  {
+    "x": 3458,
+    "y": 841.5
+  },
+  {
+    "x": 3415,
+    "y": 848.5
+  },
+  {
+    "x": 3344,
+    "y": 847.5
+  },
+  {
+    "x": 3314,
+    "y": 846.5
+  },
+  {
+    "x": 3263,
+    "y": 846.5
+  },
+  {
+    "x": 3225,
+    "y": 842.5
+  },
+  {
+    "x": 3176,
+    "y": 843.5
+  },
+  {
+    "x": 3150,
+    "y": 849.5
+  },
+  {
+    "x": 3126,
+    "y": 863.5
+  },
+  {
+    "x": 3104,
+    "y": 879.5
+  },
+  {
+    "x": 3085,
+    "y": 897.5
+  },
+  {
+    "x": 3063,
+    "y": 911.5
+  },
+  {
+    "x": 3028,
+    "y": 915.5
+  }
 ]
 
     this.pathGraphics = this.add.graphics().setDepth(999)
@@ -438,6 +777,7 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
       background: rgba(255,255,255,0.92); border: 1px solid #ccc;
       border-radius: 8px; cursor: pointer; z-index: 9999;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      display: none;
     `
     document.body.appendChild(settingsBtn)
 
@@ -514,10 +854,25 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
       inp.addEventListener('change', e => {
         setValue(parseFloat(e.target.value) || 0)
         onChange()
+        this.broadcastSettings()
       })
 
       row.append(lbl, btn1, inp, btn2)
       return row
+    }
+
+    this.broadcastSettings = () => {
+      if (this.role !== 'editor') return
+      this.sendPacket('settings', {
+        groundOffset: this.groundOffset,
+        ufoScale: this.ufoScale,
+        ufoHeight: this.ufoHeight,
+        playerSpeed: this.playerSpeed,
+        animationAdjustments: this.animationAdjustments,
+        bgPosX: window._bgPosX,
+        bgPosY: window._bgPosY,
+        bgSize: window._bgSize
+      })
     }
 
     const sep = () => {
@@ -571,7 +926,7 @@ const makeSectionTitle = (title) => {
     panel.appendChild(makeRow(
       'BG Position X', 'horizontal focus of background image (0=left, 100=right)',
       () => window._bgPosX ?? 50,
-      v => { window._bgPosX = v; window._applyBg && window._applyBg() },
+      v => { window._bgPosX = v; window._applyBg && window._applyBg(this.scrollX || 0); this.broadcastSettings() },
       1, () => {}
     ))
 
@@ -581,7 +936,7 @@ const makeSectionTitle = (title) => {
     panel.appendChild(makeRow(
       'BG Position Y', 'vertical focus of background image (0=top, 100=bottom)',
       () => window._bgPosY ?? 50,
-      v => { window._bgPosY = v; window._applyBg && window._applyBg() },
+      v => { window._bgPosY = v; window._applyBg && window._applyBg(this.scrollX || 0); this.broadcastSettings() },
       1, () => {}
     ))
 
@@ -591,7 +946,7 @@ const makeSectionTitle = (title) => {
     panel.appendChild(makeRow(
       'BG Size %', 'zoom level of background image (100=fit, higher=zoom in)',
       () => window._bgSize ?? 100,
-      v => { window._bgSize = v; window._applyBg && window._applyBg() },
+      v => { window._bgSize = v; window._applyBg && window._applyBg(this.scrollX || 0); this.broadcastSettings() },
       5, () => {}
     ))
 
@@ -964,8 +1319,10 @@ const posY =
   update(_, delta) {
     // Toggle path editor
     if (Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
-      this.pathEditorEnabled = !this.pathEditorEnabled
-      this.refreshPathEditor()
+      if (this.role === 'editor') {
+        this.pathEditorEnabled = !this.pathEditorEnabled
+        this.refreshPathEditor()
+      }
     }
 
     const dt       = delta / 16.666
@@ -1073,6 +1430,7 @@ const posY =
 
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
+    window._applyBg(this.scrollX)
 
     // =================================================
     // EMOJI POINTER UPDATE
@@ -1229,9 +1587,29 @@ const posY =
     switch (data.type) {
       case 'join':     this.createRemotePlayer(data); break
       case 'position': this.updateRemotePlayer(data); break
+      case 'settings': this.applyRemoteSettings(data); break
     }
 
     this.onlineText.setText(`Players Online: ${Object.keys(this.remotePlayers).length + 1}`)
+  }
+
+  applyRemoteSettings(data) {
+    if (this.role === 'editor') return
+
+    if (data.groundOffset !== undefined) {
+      this.groundOffset = data.groundOffset
+      this.groundY = this.scale.height - this.groundOffset
+      this.groundLine.setY(this.groundY)
+    }
+    if (data.ufoScale !== undefined) this.ufoScale = data.ufoScale
+    if (data.ufoHeight !== undefined) this.ufoHeight = data.ufoHeight
+    if (data.playerSpeed !== undefined) this.playerSpeed = data.playerSpeed
+    if (data.animationAdjustments !== undefined) this.animationAdjustments = data.animationAdjustments
+    if (data.bgPosX !== undefined) window._bgPosX = data.bgPosX
+    if (data.bgPosY !== undefined) window._bgPosY = data.bgPosY
+    if (data.bgSize !== undefined) window._bgSize = data.bgSize
+    
+    window._applyBg(this.scrollX || 0)
   }
 
   handlePlayerNameChange() {
@@ -1323,11 +1701,11 @@ window._bgPosX = 50
 window._bgPosY = 100
 window._bgSize = 100
 
-window._applyBg = function() {
+window._applyBg = function(scrollX = 0) {
   _bgDiv.style.backgroundImage = `url('assets/background.png')`
   _bgDiv.style.backgroundRepeat = 'no-repeat'
   _bgDiv.style.backgroundSize = `${window._bgSize}%`
-  _bgDiv.style.backgroundPosition = `${window._bgPosX}% ${window._bgPosY}%`
+  _bgDiv.style.backgroundPosition = `calc(${window._bgPosX}% - ${scrollX * 0.15}px) ${window._bgPosY}%`
 }
 window._applyBg()
 
