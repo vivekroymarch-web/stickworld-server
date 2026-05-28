@@ -148,6 +148,11 @@ class Portal extends Entity {
       this.particles.push({ sprite: p, offset: (i / 8) * Math.PI * 2 })
     }
 
+    if (this.ring.postFX) {
+      this.ring.postFX.addBloom(0xffffff, 1, 1, 1, 1.2)
+      this.inner.postFX.addBloom(0xffffff, 1, 1, 1, 1.5)
+    }
+
     // Label
     this.label = scene.add.text(data.x, data.y - 50, '[ PORTAL ]', {
       fontFamily: 'Arial', fontSize: '11px', color: '#88aaff'
@@ -406,6 +411,9 @@ class FireTrap extends Entity {
     super(scene, data)
     this.flickerT = 0
     this.gfx = scene.add.graphics().setDepth(8).setBlendMode(Phaser.BlendModes.ADD)
+    if (this.gfx.postFX) {
+      this.gfx.postFX.addBloom(0xffffff, 1, 1, 1, 1.3)
+    }
     this.drawFire(1)
   }
 

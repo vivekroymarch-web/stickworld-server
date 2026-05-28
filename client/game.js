@@ -309,38 +309,132 @@ class MainScene extends Phaser.Scene {
     // =================================================
     // BACKGROUND (PARALLAX + SKY)
     // =================================================
-    
+
+    if (!this.textures.exists('skyGrad')) {
+      const w = DEFAULT_WORLD.width
+      const h = this.scale.height
+
+      // SKY
+      const skyCanvas = this.textures.createCanvas('skyGrad', 1, h)
+      const skyCtx = skyCanvas.context
+      const skyGradient = skyCtx.createLinearGradient(0, 0, 0, h)
+      skyGradient.addColorStop(0, '#04040a')
+      skyGradient.addColorStop(0.4, '#0a0a1a')
+      skyGradient.addColorStop(1, '#25153a')
+      skyCtx.fillStyle = skyGradient
+      skyCtx.fillRect(0, 0, 1, h)
+      skyCanvas.refresh()
+
+      // LAYER 1 (Distant smooth hills)
+      const bg1Canvas = this.textures.createCanvas('bg1Grad', w + 2000, h)
+      const ctx1 = bg1Canvas.context
+      const grad1 = ctx1.createLinearGradient(0, this.groundY - 400, 0, this.groundY)
+      grad1.addColorStop(0, '#0b0b1a')
+      grad1.addColorStop(1, '#16162a')
+      ctx1.fillStyle = grad1
+      ctx1.beginPath()
+      ctx1.moveTo(0, this.groundY)
+      let x = 0
+      while (x < w + 2000) {
+        let cx1 = x + 100 + Math.random() * 100
+        let cy1 = this.groundY - 200 - Math.random() * 200
+        let cx2 = x + 200 + Math.random() * 100
+        let cy2 = this.groundY - 200 - Math.random() * 200
+        let endX = x + 300 + Math.random() * 150
+        let endY = this.groundY - 50 - Math.random() * 50
+        ctx1.bezierCurveTo(cx1, cy1, cx2, cy2, endX, endY)
+        x = endX
+      }
+      ctx1.lineTo(x, h)
+      ctx1.lineTo(0, h)
+      ctx1.fill()
+      bg1Canvas.refresh()
+
+      // LAYER 2 (Closer mountains)
+      const bg2Canvas = this.textures.createCanvas('bg2Grad', w + 2000, h)
+      const ctx2 = bg2Canvas.context
+      const grad2 = ctx2.createLinearGradient(0, this.groundY - 250, 0, this.groundY)
+      grad2.addColorStop(0, '#15152a')
+      grad2.addColorStop(1, '#22223b')
+      ctx2.fillStyle = grad2
+      ctx2.beginPath()
+      ctx2.moveTo(0, this.groundY)
+      x = 0
+      while (x < w + 2000) {
+        let cx1 = x + 50 + Math.random() * 50
+        let cy1 = this.groundY - 100 - Math.random() * 100
+        let cx2 = x + 150 + Math.random() * 50
+        let cy2 = this.groundY - 100 - Math.random() * 100
+        let endX = x + 200 + Math.random() * 100
+        let endY = this.groundY
+        ctx2.bezierCurveTo(cx1, cy1, cx2, cy2, endX, endY)
+        x = endX
+      }
+      ctx2.lineTo(x, h)
+      ctx2.lineTo(0, h)
+      ctx2.fill()
+      bg2Canvas.refresh()
+
+      // FOG OVERLAY
+      const fogCanvas = this.textures.createCanvas('fogGrad', 1, 200)
+      const fogCtx = fogCanvas.context
+      const fogGradient = fogCtx.createLinearGradient(0, 0, 0, 200)
+      fogGradient.addColorStop(0, 'rgba(34, 34, 59, 0)')
+      fogGradient.addColorStop(1, 'rgba(34, 34, 59, 1)')
+      fogCtx.fillStyle = fogGradient
+      fogCtx.fillRect(0, 0, 1, 200)
+      fogCanvas.refresh()
+    }
+
+    this.sky = this.add.image(0, 0, 'skyGrad').setOrigin(0).setScale(DEFAULT_WORLD.width, 1).setScrollFactor(0).setDepth(-11)
+
     // Moon / glow
     this.moon = this.add.circle(DEFAULT_WORLD.width / 2, 200, 80, 0xddddff, 0.8)
       .setScrollFactor(0.05)
       .setDepth(-10)
 
+    // Add postFX bloom only to the moon (targeted bloom)
+    if (this.moon.postFX) {
+      this.moon.postFX.addBloom(0xffffff, 1, 1, 1, 1.5)
+    }
+
     // Parallax layers (mountains/hills)
-    this.bgLayer1 = this.add.graphics().setScrollFactor(0.2).setDepth(-9)
-    this.bgLayer2 = this.add.graphics().setScrollFactor(0.5).setDepth(-8)
+    this.bgLayer1 = this.add.image(0, 0, 'bg1Grad').setOrigin(0).setScrollFactor(0.2).setDepth(-9)
+    this.bgLayer2 = this.add.image(0, 0, 'bg2Grad').setOrigin(0).setScrollFactor(0.5).setDepth(-8)
 
-    // Draw some simple procedural mountains
-    this.bgLayer1.fillStyle(0x1a1a2e, 1)
-    for (let i = 0; i < DEFAULT_WORLD.width + 1000; i += 200) {
-      this.bgLayer1.fillTriangle(i - 100, this.groundY, i + 300, this.groundY, i + 100, this.groundY - 300 - Math.random() * 150)
-    }
+    // Fog overlay sitting right on the ground
+    this.fogOverlay = this.add.image(0, this.groundY - 200, 'fogGrad').setOrigin(0).setScale(DEFAULT_WORLD.width, 1).setScrollFactor(1).setDepth(-7.5)
 
-    this.bgLayer2.fillStyle(0x22223b, 1)
-    for (let i = 0; i < DEFAULT_WORLD.width + 1000; i += 150) {
-      this.bgLayer2.fillTriangle(i - 50, this.groundY, i + 200, this.groundY, i + 75, this.groundY - 150 - Math.random() * 100)
-    }
-
-    // Post-processing Bloom on the camera
-    // Note: Phaser 3 postFX requires webgl. It adds a nice glow to bright colors.
-    if (this.cameras.main.postFX) {
-      this.bloomPipeline = this.cameras.main.postFX.addBloom(0xffffff, 1, 1, 1, 1.2)
-    }
+    // Ambient Particles (Fireflies/Dust)
+    this.dustParticles = this.add.particles(0, 0, 'ufo', {
+      x: { min: 0, max: DEFAULT_WORLD.width },
+      y: { min: this.groundY - 400, max: this.groundY },
+      lifespan: 10000,
+      speedY: { min: -10, max: -30 },
+      speedX: { min: -15, max: 15 },
+      scale: { start: 0.05, end: 0 },
+      alpha: { start: 0, end: 0.5, yoyo: true },
+      quantity: 1,
+      frequency: 200,
+      blendMode: 'ADD'
+    }).setScrollFactor(0.8).setDepth(-7)
 
     // =================================================
     // GROUND
     // =================================================
 
-    this.groundLine = this.add.rectangle(0, this.groundY, DEFAULT_WORLD.width, 2, 0x444466).setOrigin(0).setAlpha(1).setDepth(-7)
+    if (!this.textures.exists('groundEdgeGrad')) {
+      const edgeCanvas = this.textures.createCanvas('groundEdgeGrad', 1, 10)
+      const eCtx = edgeCanvas.context
+      const eGrad = eCtx.createLinearGradient(0, 0, 0, 10)
+      eGrad.addColorStop(0, '#666699')
+      eGrad.addColorStop(1, 'rgba(17, 17, 28, 0)')
+      eCtx.fillStyle = eGrad
+      eCtx.fillRect(0, 0, 1, 10)
+      edgeCanvas.refresh()
+    }
+
+    this.groundLine = this.add.image(0, this.groundY, 'groundEdgeGrad').setOrigin(0).setScale(DEFAULT_WORLD.width, 1).setDepth(-7)
     this.groundFill = this.add.rectangle(0, this.groundY + 2, DEFAULT_WORLD.width, this.scale.height - this.groundY, 0x11111c).setOrigin(0).setDepth(-7)
 
     // =================================================
@@ -770,7 +864,9 @@ class MainScene extends Phaser.Scene {
       iceTimer:   0,
     }
 
-    this.playerShadow = this.add.ellipse(this.player.x, this.groundY, 40, 10, 0x000000, 0.5).setDepth(2)
+    this.playerShadow = this.add.ellipse(this.player.x, this.groundY, 40, 10, 0x000000, 0.5)
+      .setDepth(2)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY)
 
     // =================================================
     // GRAPHICS
