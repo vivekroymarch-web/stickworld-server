@@ -577,11 +577,11 @@ class MainScene extends Phaser.Scene {
     document.body.appendChild(this.copyBtn)
 
     this.pathToggleKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.P
+      Phaser.Input.Keyboard.KeyCodes.P, false
     )
 
     this.pathDeleteKey = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.X
+      Phaser.Input.Keyboard.KeyCodes.X, false
     )
 
     this.input.mouse.disableContextMenu()
@@ -702,7 +702,7 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
       moderatelyAngry: Phaser.Input.Keyboard.KeyCodes.FIVE,
       faceHeart:       Phaser.Input.Keyboard.KeyCodes.SIX,
       faceScream:      Phaser.Input.Keyboard.KeyCodes.SEVEN,
-    })
+    }, false)
 
     this.nameInput = document.getElementById('player-name')
 
