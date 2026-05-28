@@ -1317,8 +1317,10 @@ const posY =
   // =================================================
 
   update(_, delta) {
+    const isTyping = document.activeElement && document.activeElement.tagName === 'INPUT'
+
     // Toggle path editor
-    if (Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
+    if (!isTyping && Phaser.Input.Keyboard.JustDown(this.pathToggleKey)) {
       if (this.role === 'editor') {
         this.pathEditorEnabled = !this.pathEditorEnabled
         this.refreshPathEditor()
@@ -1326,18 +1328,18 @@ const posY =
     }
 
     const dt       = delta / 16.666
-    const running  = this.keys.run.isDown
+    const running  = !isTyping && this.keys.run.isDown
     // CHANGE 1: accel and maxSpeed scaled by playerSpeed
     const accel    = running ? 0.16 * (this.playerSpeed ?? 1) : 0.08 * (this.playerSpeed ?? 1)
     const maxSpeed = running ? 1.4  * (this.playerSpeed ?? 1) : 1.2  * (this.playerSpeed ?? 1)
     const friction = 0.82
 
-    if (this.keys.left.isDown) {
+    if (!isTyping && this.keys.left.isDown) {
       this.player.vx -= accel * dt
       this.player.facing = -1
     }
 
-    if (this.keys.right.isDown) {
+    if (!isTyping && this.keys.right.isDown) {
       this.player.vx += accel * dt
       this.player.facing = 1
     }
@@ -1350,7 +1352,7 @@ const posY =
     if (this.player.x < 40)               this.player.x = 40
     if (this.player.x > WORLD_WIDTH - 40) this.player.x = WORLD_WIDTH - 40
 
-    if (this.keys.jump.isDown && this.player.grounded) {
+    if (!isTyping && this.keys.jump.isDown && this.player.grounded) {
       this.player.vy = running ? -(this.jumpVelocity ?? 7) * 1.286 : -(this.jumpVelocity ?? 7)
       this.player.grounded = false
     }
@@ -1373,17 +1375,17 @@ const posY =
     // POSE SELECTION
     // =================================================
 
-    if (this.keys.point.isDown) {
+    if (!isTyping && this.keys.point.isDown) {
       this.player.pose = 'idle'
-    } else if (this.keys.heavyLaugh.isDown) {
+    } else if (!isTyping && this.keys.heavyLaugh.isDown) {
       this.player.pose = 'heavy_laugh'
-    } else if (this.keys.laugh.isDown) {
+    } else if (!isTyping && this.keys.laugh.isDown) {
       this.player.pose = 'laugh'
-    } else if (this.keys.cry.isDown) {
+    } else if (!isTyping && this.keys.cry.isDown) {
       this.player.pose = 'cry'
-    } else if (this.keys.angry.isDown) {
+    } else if (!isTyping && this.keys.angry.isDown) {
       this.player.pose = 'angry'
-    } else if (this.keys.moderatelyAngry.isDown) {
+    } else if (!isTyping && this.keys.moderatelyAngry.isDown) {
       this.player.pose = 'moderately_angry'
     } else if (!this.player.grounded) {
       this.player.pose = 'jump'
@@ -1397,9 +1399,9 @@ const posY =
     // FACE EMOJI
     // =================================================
 
-    if (this.keys.faceHeart.isDown) {
+    if (!isTyping && this.keys.faceHeart.isDown) {
       this.activeFaceEmoji = '😍'
-    } else if (this.keys.faceScream.isDown) {
+    } else if (!isTyping && this.keys.faceScream.isDown) {
       this.activeFaceEmoji = '😱'
     } else {
       this.activeFaceEmoji = null
@@ -1436,7 +1438,7 @@ const posY =
     // EMOJI POINTER UPDATE
     // =================================================
 
-    if (this.keys.point.isDown) {
+    if (!isTyping && this.keys.point.isDown) {
       // Hide real cursor
       this.game.canvas.style.cursor = 'none'
 
