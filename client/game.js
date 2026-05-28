@@ -1,6 +1,9 @@
 
 console.log("GAME FILE LOADED")
 
+import { DEFAULT_WORLD } from './worlds.js'
+import { EntityManager, SIGN_MESSAGES } from './entities.js'
+
 // =================================================
 // ANIMATION HELPERS
 // =================================================
@@ -28,7 +31,7 @@ function drawLine(graphics, x1, y1, x2, y2) {
 const SPRITE_FRAME_SIZE = 256
 const SPRITE_FEET_Y = 228
 const STICKMAN_SPRITE_SCALE = 0.55
-const WORLD_WIDTH = 5000
+const WORLD_WIDTH = DEFAULT_WORLD.width
 const SPRITE_POSES = new Set([
   'idle',
   'walk',
@@ -76,9 +79,9 @@ class MainScene extends Phaser.Scene {
       `tab-${Math.random().toString(36).slice(2, 9)}`
 
     this.remotePlayers = {}
-
-    this.playerColor = 0xffffff
-
+    this.playerColor = 0x2255ff
+    this.playerHat = 'none'
+    this.playerGlasses = false
     this.name = `Guest ${Math.floor(Math.random() * 90) + 10}`
   }
 
@@ -147,73 +150,161 @@ class MainScene extends Phaser.Scene {
     console.log("CREATE RUNNING")
 
     this.role = 'player'
+    this.worldId = DEFAULT_WORLD.id
 
-    const loginOverlay = document.createElement('div')
-    loginOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; justify-content:center; align-items:center;'
-    
-    const loginBox = document.createElement('div')
-    loginBox.style.cssText = 'background:white; padding:30px; border-radius:10px; text-align:center; font-family:Arial;'
-    loginBox.innerHTML = `
-      <h2>Select Role</h2>
-      <button id="btn-player" style="margin:10px; padding:10px 20px; font-size:16px; cursor:pointer;">Player</button>
-      <button id="btn-editor" style="margin:10px; padding:10px 20px; font-size:16px; cursor:pointer;">Editor</button>
-      <div id="login-form" style="margin-top:20px; display:none;">
-         <input type="text" id="login-input" placeholder="" style="padding:8px; font-size:16px; width:200px;" />
-         <br><br>
-         <button id="btn-proceed" style="padding:8px 20px; font-size:16px; cursor:pointer;">Proceed</button>
-      </div>
-    `
-    loginOverlay.appendChild(loginBox)
-    document.body.appendChild(loginOverlay)
+    // -----------------------------------------------
+    // LOGIN OVERLAY — redesigned with color + accessories
+    // -----------------------------------------------
+    const COLORS = [
+      { hex: '#2255ff', val: 0x2255ff }, { hex: '#ff3333', val: 0xff3333 },
+      { hex: '#22bb44', val: 0x22bb44 }, { hex: '#cc44cc', val: 0xcc44cc },
+      { hex: '#ff8800', val: 0xff8800 }, { hex: '#00bbcc', val: 0x00bbcc },
+      { hex: '#ffdd00', val: 0xffdd00 }, { hex: '#ffffff', val: 0xffffff },
+    ]
+    const HATS = ['none', 'cap', 'wizard', 'crown']
+    const HAT_LABELS = { none: 'None', cap: '🧢 Cap', wizard: '🎩 Wizard', crown: '👑 Crown' }
 
+    let selectedColor = COLORS[0].val
+    let selectedHat = 'none'
+    let selectedGlasses = false
     let selectedRole = null
 
+    const loginOverlay = document.createElement('div')
+    loginOverlay.style.cssText = `
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.88); z-index:10000;
+      display:flex; justify-content:center; align-items:center;
+      font-family:'Segoe UI',Arial,sans-serif;
+    `
+    loginOverlay.innerHTML = `
+      <div id="login-box" style="background:#1a1a2e; color:#fff; padding:32px 36px;
+        border-radius:16px; text-align:center; min-width:340px;
+        box-shadow:0 8px 40px rgba(0,0,0,0.7); border:1px solid #333;">
+        <h2 style="margin:0 0 6px; font-size:22px; color:#8899ff;">Welcome to Stickworld</h2>
+        <p style="margin:0 0 20px; color:#888; font-size:13px;">Choose your role to enter</p>
+
+        <div style="display:flex; gap:12px; justify-content:center; margin-bottom:24px;">
+          <button id="btn-player" style="flex:1; padding:12px 0; font-size:15px; font-weight:bold;
+            background:#2255ff; color:#fff; border:none; border-radius:8px; cursor:pointer;">
+            🎮 Player
+          </button>
+          <button id="btn-editor" style="flex:1; padding:12px 0; font-size:15px; font-weight:bold;
+            background:#333; color:#aaa; border:1px solid #555; border-radius:8px; cursor:pointer;">
+            ✏️ Editor
+          </button>
+        </div>
+
+        <div id="login-form" style="display:none;">
+          <input type="text" id="login-input" placeholder="Your name"
+            style="width:100%; box-sizing:border-box; padding:10px 14px; font-size:15px;
+            border-radius:8px; border:1px solid #444; background:#111; color:#fff; margin-bottom:16px;"/>
+
+          <div id="customization-section" style="display:none;">
+            <p style="margin:0 0 8px; color:#aaa; font-size:12px; text-align:left;">Character Color</p>
+            <div id="color-swatches" style="display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px;">
+              ${COLORS.map((c,i) => `
+                <div class="swatch" data-color="${c.val}" style="
+                  width:28px; height:28px; border-radius:50%; background:${c.hex}; cursor:pointer;
+                  border:3px solid ${i===0?'#fff':'transparent'}; box-sizing:border-box;"
+                ></div>`).join('')}
+            </div>
+
+            <p style="margin:0 0 8px; color:#aaa; font-size:12px; text-align:left;">Hat</p>
+            <div id="hat-swatches" style="display:flex; gap:7px; margin-bottom:14px;">
+              ${HATS.map((h,i) => `
+                <button class="hat-btn" data-hat="${h}" style="
+                  flex:1; padding:6px 0; font-size:12px; cursor:pointer; border-radius:6px;
+                  background:${i===0?'#2255ff':'#222'}; color:#fff; border:1px solid #444;">
+                  ${HAT_LABELS[h]}
+                </button>`).join('')}
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+              <input type="checkbox" id="glasses-check" style="width:16px;height:16px;cursor:pointer;"/>
+              <label for="glasses-check" style="color:#aaa; font-size:13px; cursor:pointer;">👓 Glasses</label>
+            </div>
+          </div>
+
+          <button id="btn-proceed" style="width:100%; padding:12px 0; font-size:15px; font-weight:bold;
+            background:#2255ff; color:#fff; border:none; border-radius:8px; cursor:pointer;">
+            Proceed →
+          </button>
+        </div>
+      </div>
+    `
+    document.body.appendChild(loginOverlay)
+
+    // Color swatches
+    loginOverlay.querySelectorAll('.swatch').forEach(el => {
+      el.onclick = () => {
+        selectedColor = parseInt(el.dataset.color)
+        loginOverlay.querySelectorAll('.swatch').forEach(s => s.style.borderColor = 'transparent')
+        el.style.borderColor = '#fff'
+      }
+    })
+
+    // Hat buttons
+    loginOverlay.querySelectorAll('.hat-btn').forEach(el => {
+      el.onclick = () => {
+        selectedHat = el.dataset.hat
+        loginOverlay.querySelectorAll('.hat-btn').forEach(b => b.style.background = '#222')
+        el.style.background = '#2255ff'
+      }
+    })
+
+    document.getElementById('glasses-check').onchange = (e) => { selectedGlasses = e.target.checked }
+
     document.getElementById('btn-player').onclick = () => {
-       selectedRole = 'player'
-       document.getElementById('login-form').style.display = 'block'
-       document.getElementById('login-input').placeholder = 'Enter Name'
-       document.getElementById('login-input').type = 'text'
-       document.getElementById('login-input').value = ''
-       document.getElementById('login-input').focus()
+      selectedRole = 'player'
+      const form = document.getElementById('login-form')
+      form.style.display = 'block'
+      document.getElementById('login-input').placeholder = 'Your name'
+      document.getElementById('login-input').type = 'text'
+      document.getElementById('customization-section').style.display = 'block'
+      document.getElementById('login-input').focus()
     }
 
     document.getElementById('btn-editor').onclick = () => {
-       selectedRole = 'editor'
-       document.getElementById('login-form').style.display = 'block'
-       document.getElementById('login-input').placeholder = 'Enter Password'
-       document.getElementById('login-input').type = 'password'
-       document.getElementById('login-input').value = ''
-       document.getElementById('login-input').focus()
+      selectedRole = 'editor'
+      const form = document.getElementById('login-form')
+      form.style.display = 'block'
+      document.getElementById('login-input').placeholder = 'Enter password'
+      document.getElementById('login-input').type = 'password'
+      document.getElementById('customization-section').style.display = 'none'
+      document.getElementById('login-input').focus()
     }
 
     document.getElementById('btn-proceed').onclick = () => {
-       const val = document.getElementById('login-input').value.trim()
-       if (selectedRole === 'editor') {
-          if (val !== 'qwerty') {
-             alert('Incorrect password!')
-             return
-          }
-       } else {
-          if (val) this.name = val
-       }
-       loginOverlay.remove()
-       this.role = selectedRole
-       
-       if (this.role === 'editor') {
-          const settingsBtn = document.getElementById('settings-btn')
-          if (settingsBtn) settingsBtn.style.display = 'block'
-       }
-       
-       if (this.nameInput) this.nameInput.value = this.name
-       this.nameText.setText(this.name)
-       this.sendPacket('join')
+      const val = document.getElementById('login-input').value.trim()
+      if (selectedRole === 'editor') {
+        if (val !== 'qwerty') { alert('Incorrect password!'); return }
+      } else {
+        if (val) this.name = val
+        this.playerColor = selectedColor
+        this.playerHat = selectedHat
+        this.playerGlasses = selectedGlasses
+      }
+      loginOverlay.remove()
+      this.role = selectedRole
+      if (this.role === 'editor') {
+        const settingsBtn = document.getElementById('settings-btn')
+        if (settingsBtn) settingsBtn.style.display = 'block'
+        this._buildEntityPalette()
+      }
+      if (this.nameInput) this.nameInput.value = this.name
+      this.nameText.setText(this.name)
+      this.sendPacket('join', { world: this.worldId })
     }
 
-    this.groundY = this.scale.height - 91
+    this.groundY = this.scale.height - DEFAULT_WORLD.groundOffset
+    this.groundOffset = DEFAULT_WORLD.groundOffset
     this.game.canvas.style.imageRendering = 'pixelated'
 
-    this.physics.world.setBounds(0, 0, WORLD_WIDTH, this.scale.height)
-    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, this.scale.height)
+    this.physics.world.setBounds(0, 0, DEFAULT_WORLD.width, this.scale.height)
+    this.cameras.main.setBounds(0, 0, DEFAULT_WORLD.width, this.scale.height)
+
+    // Entity Manager
+    this.entityManager = new EntityManager(this)
 
     // =================================================
     // BACKGROUND
@@ -224,7 +315,7 @@ class MainScene extends Phaser.Scene {
     // GROUND
     // =================================================
 
-    this.groundLine = this.add.rectangle(0, this.groundY, WORLD_WIDTH, 2, 0xcccccc).setOrigin(0).setAlpha(0)
+    this.groundLine = this.add.rectangle(0, this.groundY, DEFAULT_WORLD.width, 2, 0xcccccc).setOrigin(0).setAlpha(0)
 
     // =================================================
     // UFO — ambient background object
@@ -637,20 +728,20 @@ class MainScene extends Phaser.Scene {
     // =================================================
 
     this.player = {
-      x: Math.floor(WORLD_WIDTH / 2),
-      y: this.groundY,
-      vx: 0,
-      vy: 0,
-      facing: 1,
-      grounded: true,
-      pose: 'idle',
-      animTime: 0,
-      walkCycle: 0,
+      x:          DEFAULT_WORLD.spawnX,
+      y:          this.groundY,
+      vx: 0, vy: 0,
+      facing:     1,
+      grounded:   true,
+      pose:       'idle',
+      animTime:   0,
+      walkCycle:  0,
       pointAngle: 0,
-      elbowSide: 1,
-      squashY: 1,
-      squashX: 1,
-      tearTimer: 0,
+      elbowSide:  1,
+      squashY:    1,
+      squashX:    1,
+      tearTimer:  0,
+      iceTimer:   0,
     }
 
     // =================================================
@@ -1327,18 +1418,20 @@ const posY =
     }
 
     const dt       = delta / 16.666
+    const onIce    = (this.player.iceTimer ?? 0) > 0
+    if (onIce) { this.player.iceTimer -= delta }
     const running  = !isTyping && this.keys.run.isDown
     // CHANGE 1: accel and maxSpeed scaled by playerSpeed
-    const accel    = running ? 0.16 * (this.playerSpeed ?? 1) : 0.08 * (this.playerSpeed ?? 1)
+    const accel    = onIce ? 0.01 : (running ? 0.16 * (this.playerSpeed ?? 1) : 0.08 * (this.playerSpeed ?? 1))
     const maxSpeed = running ? 1.4  * (this.playerSpeed ?? 1) : 1.2  * (this.playerSpeed ?? 1)
-    const friction = 0.82
+    const friction = onIce ? 0.995 : 0.82
 
-    if (!isTyping && this.keys.left.isDown) {
+    if (!isTyping && !onIce && this.keys.left.isDown) {
       this.player.vx -= accel * dt
       this.player.facing = -1
     }
 
-    if (!isTyping && this.keys.right.isDown) {
+    if (!isTyping && !onIce && this.keys.right.isDown) {
       this.player.vx += accel * dt
       this.player.facing = 1
     }
@@ -1490,11 +1583,11 @@ const posY =
     // =================================================
 
     this.ufoTime += delta * 0.001
-    const ufoScreenX = ((this.ufoTime * 28) % (this.scale.width + 200)) - 100
-    const ufoScreenY = this.ufoHeight + Math.sin(this.ufoTime * 0.6) * 18
+    const ufoWorldX = DEFAULT_WORLD.ufo.x + Math.sin(this.ufoTime * 0.4) * 200
+    const ufoWorldY = this.ufoHeight + Math.sin(this.ufoTime * 0.6) * 18
     const ufoRotation = Math.sin(this.ufoTime * 1.1) * 0.04
 
-    this.ufo.setPosition(ufoScreenX, ufoScreenY)
+    this.ufo.setPosition(ufoWorldX, ufoWorldY)
     this.ufo.setScale(this.ufoScale)
     this.ufo.setRotation(ufoRotation)
 
@@ -1546,6 +1639,179 @@ const posY =
       this.renderCharacter(remote.graphics, remote.sprite, remote, remote.color, false)
       remote.label.setPosition(remote.x, remote.y - 165)
     }
+
+    // =================================================
+    // ENTITY MANAGER UPDATE
+    // =================================================
+    if (this.entityManager) {
+      this.entityManager.update(this.player, delta, (event) => this._handleEntityEvent(event))
+    }
+  }
+
+  // =================================================
+  // ENTITY EVENT HANDLER
+  // =================================================
+
+  _handleEntityEvent(event) {
+    switch (event.type) {
+      case 'teleport':
+        this.player.x = event.x
+        this.player.y = event.y
+        this.player.vx = 0
+        this.player.vy = 0
+        this.cameras.main.flash(300, 100, 120, 255)
+        break
+
+      case 'trap_spike': {
+        const force = 10
+        this.player.vx = event.direction * force
+        this.player.vy = -6
+        this.player.grounded = false
+        this.cameras.main.shake(200, 0.01)
+        break
+      }
+
+      case 'trap_spring':
+        this.player.vy = -18
+        this.player.grounded = false
+        break
+
+      case 'trap_ice':
+        this.player.iceTimer = 2000
+        break
+
+      case 'trap_fire':
+        this.cameras.main.flash(250, 255, 80, 0)
+        this.cameras.main.shake(300, 0.015)
+        break
+
+      case 'trap_hole':
+        this.player.y = this.groundY + 200
+        this.player.vy = 0
+        this.cameras.main.flash(400, 0, 0, 0)
+        this.time.delayedCall(400, () => {
+          this.player.x = event.respawnX
+          this.player.y = this.groundY
+          this.player.vx = 0
+        })
+        break
+
+      case 'arrow_fire':
+        if (this.entityManager) {
+          this.entityManager.fireArrow(event.x, event.y, event.direction)
+        }
+        break
+
+      case 'crate_push':
+        this.sendPacket('entity_push', {
+          entityId: event.entityId,
+          x: event.x,
+          y: event.y
+        })
+        break
+    }
+  }
+
+  // =================================================
+  // ENTITY PLACEMENT EDITOR (Editor only)
+  // =================================================
+
+  _buildEntityPalette() {
+    const types = [
+      { type: 'portal',  label: '🌀 Portal' },
+      { type: 'crate',   label: '📦 Crate' },
+      { type: 'sign',    label: '🪧 Sign' },
+      { type: 'spike',   label: '🗡️ Spikes' },
+      { type: 'spring',  label: '🌀 Spring' },
+      { type: 'ice',     label: '🧊 Ice' },
+      { type: 'fire',    label: '🔥 Fire' },
+      { type: 'hole',    label: '🕳️ Hole' },
+      { type: 'arrow',   label: '🏹 Arrow' },
+    ]
+
+    const palette = document.createElement('div')
+    palette.id = 'entity-palette'
+    palette.style.cssText = `
+      position:fixed; bottom:12px; left:50%; transform:translateX(-50%);
+      display:flex; gap:8px; z-index:9000;
+      background:rgba(20,20,30,0.9); padding:10px 14px;
+      border-radius:12px; border:1px solid #444;
+      box-shadow:0 4px 20px rgba(0,0,0,0.5);
+    `
+
+    let selectedEntityType = null
+
+    types.forEach(({ type, label }) => {
+      const btn = document.createElement('button')
+      btn.textContent = label
+      btn.dataset.etype = type
+      btn.style.cssText = `
+        padding:7px 10px; font-size:12px; cursor:pointer;
+        border-radius:8px; border:1px solid #555;
+        background:#222; color:#ddd; white-space:nowrap;
+      `
+      btn.onclick = () => {
+        selectedEntityType = (selectedEntityType === type) ? null : type
+        palette.querySelectorAll('button').forEach(b => b.style.background = '#222')
+        if (selectedEntityType) btn.style.background = '#2255ff'
+      }
+      palette.appendChild(btn)
+    })
+
+    document.body.appendChild(palette)
+
+    // Place entity on click in world
+    this.input.on('pointerdown', (pointer) => {
+      if (!selectedEntityType || this.role !== 'editor') return
+      if (pointer.button !== 0) return
+
+      const worldX = pointer.worldX
+      const worldY = pointer.worldY
+
+      let config = {}
+      if (selectedEntityType === 'sign') {
+        const msgIndex = Math.floor(Math.random() * SIGN_MESSAGES.length)
+        config.message = SIGN_MESSAGES[msgIndex]
+      }
+      if (selectedEntityType === 'portal') {
+        config.destX = worldX + 400
+        config.destY = worldY
+      }
+
+      const entityId = `entity-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`
+      const entityData = {
+        id:         entityId,
+        type:       selectedEntityType,
+        x:          worldX,
+        y:          worldY,
+        config
+      }
+
+      this.entityManager.create(entityData)
+      this.sendPacket('entity_update', {
+        entityId,
+        entityType: selectedEntityType,
+        x:          worldX,
+        y:          worldY,
+        config
+      })
+    })
+
+    // Right-click to delete entity
+    this.input.on('pointerdown', (pointer) => {
+      if (pointer.button !== 2 || this.role !== 'editor') return
+      const wx = pointer.worldX
+      const wy = pointer.worldY
+      for (const [id, entity] of this.entityManager.entities) {
+        const dx = Math.abs(entity.x - wx)
+        const dy = Math.abs(entity.y - wy)
+        if (dx < 40 && dy < 40) {
+          this.entityManager.destroy(id)
+          this.sendPacket('entity_update', { entityId: id, deleted: true })
+          break
+        }
+      }
+    })
   }
 
   // =================================================
@@ -1556,7 +1822,9 @@ const posY =
     const url = 'wss://stickworld-server.onrender.com'
     this.socket = new WebSocket(url)
 
-    this.socket.addEventListener('open', () => { this.sendPacket('join') })
+    this.socket.addEventListener('open', () => {
+      this.sendPacket('join', { world: this.worldId || 'default' })
+    })
     this.socket.addEventListener('message', (event) => { this.handleMessage(event.data) })
   }
 
@@ -1572,12 +1840,21 @@ const posY =
       animTime:   this.player.animTime,
       pointAngle: this.player.pointAngle,
       name:       this.name,
+      color:      this.playerColor,
+      hat:        this.playerHat,
+      glasses:    this.playerGlasses,
     })
   }
 
   sendPacket(type, extra = {}) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return
-    this.socket.send(JSON.stringify({ type, id: this.clientId, name: this.name, ...extra }))
+    this.socket.send(JSON.stringify({
+      type,
+      id:    this.clientId,
+      name:  this.name,
+      world: this.worldId || 'default',
+      ...extra
+    }))
   }
 
   handleMessage(message) {
@@ -1586,9 +1863,13 @@ const posY =
     if (!data || data.id === this.clientId) return
 
     switch (data.type) {
-      case 'join':     this.createRemotePlayer(data); break
-      case 'position': this.updateRemotePlayer(data); break
-      case 'settings': this.applyRemoteSettings(data); break
+      case 'join':         this.createRemotePlayer(data); break
+      case 'position':     this.updateRemotePlayer(data); break
+      case 'settings':     this.applyRemoteSettings(data); break
+      case 'world_state':  this.applyWorldState(data); break
+      case 'entity_update': this.applyEntityUpdate(data); break
+      case 'entity_push':   this.entityManager.moveCrate(data.entityId, data.x, data.y); break
+      case 'disconnect':   this.removeRemotePlayer(data.id); break
     }
 
     this.onlineText.setText(`Players Online: ${Object.keys(this.remotePlayers).length + 1}`)
@@ -1611,6 +1892,37 @@ const posY =
     if (data.bgSize !== undefined) window._bgSize = data.bgSize
     
     window._applyBg(this.scrollX || 0)
+  }
+
+  applyWorldState(data) {
+    if (!data.entities) return
+    for (const e of data.entities) {
+      this.entityManager.create(e)
+    }
+  }
+
+  applyEntityUpdate(data) {
+    if (data.deleted) {
+      this.entityManager.destroy(data.entityId)
+    } else {
+      this.entityManager.create({
+        id:     data.entityId,
+        type:   data.entityType,
+        x:      data.x,
+        y:      data.y,
+        config: data.config || {}
+      })
+    }
+  }
+
+  removeRemotePlayer(id) {
+    const remote = this.remotePlayers[id]
+    if (!remote) return
+    if (remote.graphics) remote.graphics.destroy()
+    if (remote.sprite)   remote.sprite.destroy()
+    if (remote.label)    remote.label.destroy()
+    delete this.remotePlayers[id]
+    this.onlineText.setText(`Players Online: ${Object.keys(this.remotePlayers).length + 1}`)
   }
 
   handlePlayerNameChange() {
@@ -1636,7 +1948,7 @@ const posY =
       graphics,
       sprite,
       label,
-      x:          data.x ?? this.scale.width / 2,
+      x:          data.x ?? DEFAULT_WORLD.spawnX,
       y:          data.y ?? this.groundY,
       vx: 0, vy: 0,
       facing:     1,
@@ -1647,6 +1959,9 @@ const posY =
       pointAngle: data.pointAngle || 0,
       elbowSide:  data.elbowSide  || 1,
       name:       data.name,
+      color:      data.color || 0x2255ff,
+      hat:        data.hat || 'none',
+      glasses:    data.glasses || false,
       squashY: 1, squashX: 1,
       tearTimer: 0,
     }
@@ -1669,7 +1984,9 @@ const posY =
     remote.pointAngle = data.pointAngle || 0
     remote.elbowSide  = data.elbowSide  || 1
     remote.name       = data.name  || remote.name
-    remote.color      = data.color || remote.color || 0x0066ff
+    remote.color      = data.color || remote.color || 0x2255ff
+    remote.hat        = data.hat   ?? remote.hat   ?? 'none'
+    remote.glasses    = data.glasses ?? remote.glasses ?? false
 
     remote.label.setText(remote.name)
     this.renderCharacter(remote.graphics, remote.sprite, remote, remote.color, false)
