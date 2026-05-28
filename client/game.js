@@ -234,7 +234,6 @@ class MainScene extends Phaser.Scene {
       .setScale(0.71)
       .setAlpha(0.82)
       .setDepth(1)
-      .setScrollFactor(0.15)
 
     this.ufoScale  = 0.71
     this.ufoHeight = 440
