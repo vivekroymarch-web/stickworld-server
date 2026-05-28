@@ -228,6 +228,15 @@ class MainScene extends Phaser.Scene {
     .setDepth(999)
     .setVisible(false)
 
+    this.copyBtn = document.createElement('button')
+    this.copyBtn.textContent = 'Copy Path JSON'
+    this.copyBtn.style.cssText = 'position:fixed; top:70px; left:20px; z-index:9999; display:none; padding:4px 8px; cursor:pointer; background:#fff; border:1px solid #000; border-radius:4px; font-family:Arial; font-size:12px;'
+    this.copyBtn.onclick = () => {
+      navigator.clipboard.writeText(JSON.stringify(this.mushroomPath, null, 2))
+        .then(() => alert('Copied to clipboard!'))
+    }
+    document.body.appendChild(this.copyBtn)
+
     this.pathToggleKey = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.P
     )
@@ -379,8 +388,8 @@ this.mushroomDirection = 1   // 1 = forward, -1 = reverse
     this.animationAdjustments = {
 
   idle: {
-    offsetY: 35,
-    scale: 1.65,
+    offsetY: 2,
+    scale: 1.0,
   },
 
   walk: {
@@ -726,11 +735,13 @@ Object.keys(this.animationAdjustments).forEach(anim => {
     if (!this.pathEditorEnabled) {
       this.pathText.setVisible(false)
       this.pathHelp.setVisible(false)
+      if (this.copyBtn) this.copyBtn.style.display = 'none'
       return
     }
 
     this.pathText.setVisible(true)
     this.pathHelp.setVisible(true)
+    if (this.copyBtn) this.copyBtn.style.display = 'block'
 
     // Draw path lines
     this.pathGraphics.lineStyle(4, 0x00ff88, 1)
@@ -1050,7 +1061,7 @@ const posY =
 
     // Edge-scroll: move camera so player stays within [margin, screenW-margin]
     const screenW       = this.scale.width
-    const margin        = screenW * 0.15
+    const margin        = 0
     const playerScreenX = this.player.x - this.scrollX
 
     if (playerScreenX > screenW - margin) {
@@ -1133,46 +1144,42 @@ const posY =
     // =================================================
 
     if (this.mushroomPath.length > 1) {
-
-      const nextIndex = this.mushroomPathIndex + this.mushroomDirection
-
-      // Hit the end → reverse direction
-      if (nextIndex >= this.mushroomPath.length) {
-        this.mushroomDirection = -1
-      }
-      // Hit the start → go forward again
-      else if (nextIndex < 0) {
-        this.mushroomDirection = 1
+      let totalLength = 0
+      const segments = []
+      for(let i=0; i<this.mushroomPath.length-1; i++) {
+        const p1 = this.mushroomPath[i]
+        const p2 = this.mushroomPath[i+1]
+        const d = Phaser.Math.Distance.BetweenPoints(p1, p2)
+        segments.push({ p1, p2, dist: d, accum: totalLength })
+        totalLength += d
       }
 
-      const safeNext = Phaser.Math.Clamp(
-        this.mushroomPathIndex + this.mushroomDirection,
-        0,
-        this.mushroomPath.length - 1
-      )
+      const speedPxPerSec = this.mushroomSpeed * 60
+      const cycleTime = (totalLength * 2) / speedPxPerSec
+      const t = (Date.now() / 1000) % cycleTime
+      let currentD = t * speedPxPerSec
 
-      const target = this.mushroomPath[safeNext]
+      let forward = true
+      if (currentD > totalLength) {
+        currentD = totalLength * 2 - currentD
+        forward = false
+      }
 
-      const dx = target.x - this.mushroom.x
-      const dy = target.y - this.mushroom.y
-      const dist = Math.sqrt(dx * dx + dy * dy)
-
-      if (dist < 8) {
-        this.mushroomPathIndex = safeNext
-      } else {
-        const moveX = (dx / dist) * this.mushroomSpeed
-        const moveY = (dy / dist) * this.mushroomSpeed
-
-        this.mushroom.x += moveX
-        this.mushroom.y += moveY
-
-        // face movement direction
-        if (moveX > 0) {
-          this.mushroom.setScale(-2, 2)
-        } else {
-          this.mushroom.setScale(2, 2)
+      let targetSeg = segments[0]
+      for(let seg of segments) {
+        if (currentD >= seg.accum && currentD <= seg.accum + seg.dist) {
+          targetSeg = seg
+          break
         }
       }
+
+      const segT = targetSeg.dist === 0 ? 0 : (currentD - targetSeg.accum) / targetSeg.dist
+      this.mushroom.x = Phaser.Math.Linear(targetSeg.p1.x, targetSeg.p2.x, segT)
+      this.mushroom.y = Phaser.Math.Linear(targetSeg.p1.y, targetSeg.p2.y, segT)
+
+      const dx = targetSeg.p2.x - targetSeg.p1.x
+      const moveRight = forward ? dx > 0 : dx < 0
+      this.mushroom.setScale(moveRight ? -2 : 2, 2)
     }
 
     for (const id in this.remotePlayers) {
