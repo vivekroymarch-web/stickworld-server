@@ -17,6 +17,10 @@ export const WORLDS = {
     spawnX: 3840,          // center of world
     mushroomSpeed: 1.2,
     ufo: { x: 2000, height: 440, scale: 0.71 },
+    entities: [
+      { id: 'npc-guide', type: 'guide', x: 3700, y: 0, config: {} },
+      { id: 'npc-wanderer', type: 'wanderer', x: 4200, y: 0, config: {} }
+    ]
   }
 }
 

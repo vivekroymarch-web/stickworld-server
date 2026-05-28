@@ -3,6 +3,8 @@
 // Portal, Crate, Sign, Spike, Spring, Ice, Fire, Hole, Arrow
 // =================================================
 
+import { GuideNPC, WandererNPC } from './npcs.js'
+
 const SIGN_MESSAGES = [
   'Welcome to Stickworld!',
   'Beware of the spikes ahead!',
@@ -42,6 +44,8 @@ export class EntityManager {
       case 'fire':    entity = new FireTrap(this.scene, data); break
       case 'hole':    entity = new HoleTrap(this.scene, data); break
       case 'arrow':   entity = new ArrowTrap(this.scene, data); break
+      case 'guide':   entity = new GuideNPC(this.scene, data); break
+      case 'wanderer': entity = new WandererNPC(this.scene, data); break
       default: return null
     }
 
@@ -135,12 +139,12 @@ class Portal extends Entity {
     super(scene, data)
     this.angle = 0
 
-    // Glowing outer ring
-    this.ring = scene.add.circle(data.x, data.y, 36, 0x4466ff, 0.25).setDepth(5)
-    this.inner = scene.add.circle(data.x, data.y, 24, 0x88aaff, 0.6).setDepth(6)
+    // Glowing outer ring (ADD blend mode for bloom)
+    this.ring = scene.add.circle(data.x, data.y, 36, 0x4466ff, 0.25).setDepth(5).setBlendMode(Phaser.BlendModes.ADD)
+    this.inner = scene.add.circle(data.x, data.y, 24, 0x88aaff, 0.6).setDepth(6).setBlendMode(Phaser.BlendModes.ADD)
     this.particles = []
     for (let i = 0; i < 8; i++) {
-      const p = scene.add.circle(data.x, data.y, 4, 0xaaccff, 0.8).setDepth(7)
+      const p = scene.add.circle(data.x, data.y, 4, 0xaaccff, 0.8).setDepth(7).setBlendMode(Phaser.BlendModes.ADD)
       this.particles.push({ sprite: p, offset: (i / 8) * Math.PI * 2 })
     }
 
@@ -401,7 +405,7 @@ class FireTrap extends Entity {
   constructor(scene, data) {
     super(scene, data)
     this.flickerT = 0
-    this.gfx = scene.add.graphics().setDepth(8)
+    this.gfx = scene.add.graphics().setDepth(8).setBlendMode(Phaser.BlendModes.ADD)
     this.drawFire(1)
   }
 

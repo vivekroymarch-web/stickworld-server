@@ -307,15 +307,41 @@ class MainScene extends Phaser.Scene {
     this.entityManager = new EntityManager(this)
 
     // =================================================
-    // BACKGROUND
+    // BACKGROUND (PARALLAX + SKY)
     // =================================================
-    // Handled by CSS div injected at bottom of file before Phaser starts
+    
+    // Moon / glow
+    this.moon = this.add.circle(DEFAULT_WORLD.width / 2, 200, 80, 0xddddff, 0.8)
+      .setScrollFactor(0.05)
+      .setDepth(-10)
+
+    // Parallax layers (mountains/hills)
+    this.bgLayer1 = this.add.graphics().setScrollFactor(0.2).setDepth(-9)
+    this.bgLayer2 = this.add.graphics().setScrollFactor(0.5).setDepth(-8)
+
+    // Draw some simple procedural mountains
+    this.bgLayer1.fillStyle(0x1a1a2e, 1)
+    for (let i = 0; i < DEFAULT_WORLD.width + 1000; i += 200) {
+      this.bgLayer1.fillTriangle(i - 100, this.groundY, i + 300, this.groundY, i + 100, this.groundY - 300 - Math.random() * 150)
+    }
+
+    this.bgLayer2.fillStyle(0x22223b, 1)
+    for (let i = 0; i < DEFAULT_WORLD.width + 1000; i += 150) {
+      this.bgLayer2.fillTriangle(i - 50, this.groundY, i + 200, this.groundY, i + 75, this.groundY - 150 - Math.random() * 100)
+    }
+
+    // Post-processing Bloom on the camera
+    // Note: Phaser 3 postFX requires webgl. It adds a nice glow to bright colors.
+    if (this.cameras.main.postFX) {
+      this.bloomPipeline = this.cameras.main.postFX.addBloom(0xffffff, 1, 1, 1, 1.2)
+    }
 
     // =================================================
     // GROUND
     // =================================================
 
-    this.groundLine = this.add.rectangle(0, this.groundY, DEFAULT_WORLD.width, 2, 0xcccccc).setOrigin(0).setAlpha(0)
+    this.groundLine = this.add.rectangle(0, this.groundY, DEFAULT_WORLD.width, 2, 0x444466).setOrigin(0).setAlpha(1).setDepth(-7)
+    this.groundFill = this.add.rectangle(0, this.groundY + 2, DEFAULT_WORLD.width, this.scale.height - this.groundY, 0x11111c).setOrigin(0).setDepth(-7)
 
     // =================================================
     // UFO — ambient background object
@@ -743,6 +769,8 @@ class MainScene extends Phaser.Scene {
       tearTimer:  0,
       iceTimer:   0,
     }
+
+    this.playerShadow = this.add.ellipse(this.player.x, this.groundY, 40, 10, 0x000000, 0.5).setDepth(2)
 
     // =================================================
     // GRAPHICS
@@ -1575,6 +1603,11 @@ const posY =
     }
 
     this.renderCharacter(this.playerGraphics, this.playerSprite, this.player, this.playerColor, true)
+    
+    this.playerShadow.setPosition(this.player.x, this.groundY)
+    const shadowScale = Phaser.Math.Clamp(1 - (this.groundY - this.player.y) / 200, 0.2, 1)
+    this.playerShadow.setScale(shadowScale)
+    this.playerShadow.setAlpha(shadowScale * 0.5)
 
     this.nameText.setPosition(this.player.x, this.player.y - 165)
 
@@ -1727,6 +1760,8 @@ const posY =
       { type: 'fire',    label: '🔥 Fire' },
       { type: 'hole',    label: '🕳️ Hole' },
       { type: 'arrow',   label: '🏹 Arrow' },
+      { type: 'guide',   label: '🧙 Guide' },
+      { type: 'wanderer', label: '🚶 Wanderer' },
     ]
 
     const palette = document.createElement('div')
@@ -1887,11 +1922,6 @@ const posY =
     if (data.ufoHeight !== undefined) this.ufoHeight = data.ufoHeight
     if (data.playerSpeed !== undefined) this.playerSpeed = data.playerSpeed
     if (data.animationAdjustments !== undefined) this.animationAdjustments = data.animationAdjustments
-    if (data.bgPosX !== undefined) window._bgPosX = data.bgPosX
-    if (data.bgPosY !== undefined) window._bgPosY = data.bgPosY
-    if (data.bgSize !== undefined) window._bgSize = data.bgSize
-    
-    window._applyBg(this.scrollX || 0)
   }
 
   applyWorldState(data) {
@@ -1994,48 +2024,13 @@ const posY =
   }
 }
 
-// =================================================
-// BACKGROUND DIV — injected before Phaser starts
-// =================================================
-
-const _bgDiv = document.createElement('div')
-_bgDiv.id = 'game-bg'
-_bgDiv.style.cssText = `
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: -1;
-  pointer-events: none;
-`
-document.body.style.margin = '0'
-document.body.style.overflow = 'hidden'
-document.body.appendChild(_bgDiv)
-
-// -------------------------------------------------
-// BG state — controlled via Settings panel in-game
-// -------------------------------------------------
-
-window._bgPosX = 50
-window._bgPosY = 100
-window._bgSize = 100
-
-window._applyBg = function(scrollX = 0) {
-  _bgDiv.style.backgroundImage = `url('assets/background.png')`
-  _bgDiv.style.backgroundRepeat = 'no-repeat'
-  _bgDiv.style.backgroundSize = `${window._bgSize}%`
-  _bgDiv.style.backgroundPosition = `calc(${window._bgPosX}% - ${scrollX}px) ${window._bgPosY}%`
-}
-window._applyBg()
-
-console.log("CREATING GAME")
-
 export const gameConfig = {
   type: Phaser.AUTO,
   width: window.innerWidth,
   height: window.innerHeight,
   parent: 'app',
-  transparent: true,
-  backgroundColor: 'transparent',
+  transparent: false,
+  backgroundColor: '#0a0a14',
   physics: {
     default: 'arcade',
     arcade: { debug: false },

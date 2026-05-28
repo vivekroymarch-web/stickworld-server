@@ -13,7 +13,12 @@ const worlds = new Map()
 
 function getWorld(worldId) {
   if (!worlds.has(worldId)) {
-    worlds.set(worldId, { entities: new Map() })
+    const entities = new Map()
+    if (worldId === 'default') {
+      entities.set('npc-guide', { id: 'npc-guide', type: 'guide', x: 3700, y: 0, config: {} })
+      entities.set('npc-wanderer', { id: 'npc-wanderer', type: 'wanderer', x: 4200, y: 0, config: {} })
+    }
+    worlds.set(worldId, { entities })
   }
   return worlds.get(worldId)
 }
