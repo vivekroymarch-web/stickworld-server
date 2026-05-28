@@ -32,16 +32,7 @@ const SPRITE_FRAME_SIZE = 256
 const SPRITE_FEET_Y = 228
 const STICKMAN_SPRITE_SCALE = 0.55
 const WORLD_WIDTH = DEFAULT_WORLD.width
-const SPRITE_POSES = new Set([
-  'idle',
-  'walk',
-  'jump',
-  'laugh',
-  'heavy_laugh',
-  'cry',
-  'angry',
-  'moderately_angry',
-])
+const SPRITE_POSES = new Set([])
 
 // =================================================
 // IDLE POSE
@@ -358,7 +349,17 @@ class MainScene extends Phaser.Scene {
       quantity: 1,
       frequency: 200,
       blendMode: 'ADD'
-    }).setScrollFactor(0.8).setDepth(-7)
+    }).setDepth(-10)
+
+    // Trail Particles for characters
+    this.trailParticles = this.add.particles(0, 0, 'ufo', {
+      lifespan: 500,
+      speed: { min: 5, max: 20 },
+      scale: { start: 0.1, end: 0 },
+      alpha: { start: 0.5, end: 0 },
+      blendMode: 'ADD',
+      emitting: false
+    }).setDepth(-1)
 
     // =================================================
     // GROUND
@@ -1370,6 +1371,106 @@ this.mushroomPath.forEach((p, index) => {
   }
 
   // =================================================
+  // DRAW CHARACTER (Energy Wanderer)
+  // =================================================
+
+  drawCharacter(graphics, player, color, isLocal) {
+    graphics.clear()
+
+    const x = player.x
+    const y = player.y
+    const t = player.animTime || 0
+    const squashY = player.squashY || 1
+    const squashX = player.squashX || 1
+    const facing = player.facing || 1
+
+    // Initialize Cape Physics Array
+    if (!player.cape) {
+      player.cape = []
+      for (let i = 0; i < 8; i++) {
+        player.cape.push({ x: x, y: y - 50 })
+      }
+    }
+
+    // Update Cape Physics (Verlet-style)
+    const capeAttachX = x - facing * 5
+    const capeAttachY = y - 70 * squashY
+    player.cape[0].x = capeAttachX
+    player.cape[0].y = capeAttachY
+
+    for (let i = 1; i < player.cape.length; i++) {
+      const p1 = player.cape[i - 1]
+      const p2 = player.cape[i]
+
+      // Gravity and Wind
+      p2.y += 1.5
+      p2.x -= (player.vx || 0) * 0.15 + facing * 0.5
+
+      // Distance constraint
+      const dx = p2.x - p1.x
+      const dy = p2.y - p1.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      const targetDist = 8
+
+      if (dist > targetDist) {
+        const ratio = targetDist / dist
+        p2.x = p1.x + dx * ratio
+        p2.y = p1.y + dy * ratio
+      }
+    }
+
+    // Draw Cape
+    graphics.lineStyle(14, color, 0.8)
+    graphics.beginPath()
+    graphics.moveTo(player.cape[0].x, player.cape[0].y)
+    for (let i = 1; i < player.cape.length; i++) {
+      graphics.lineTo(player.cape[i].x, player.cape[i].y)
+      // Taper the cape thickness
+      graphics.lineStyle(14 - i * 1.5, color, 0.8 - i * 0.05)
+      graphics.strokePath()
+      graphics.beginPath()
+      graphics.moveTo(player.cape[i].x, player.cape[i].y)
+    }
+
+    // Draw Body (Glowing Energy Core)
+    const headY = y - 82 * squashY + Math.sin(t * 0.08) * 4
+    
+    // Aura/Glow
+    graphics.fillStyle(color, 0.3)
+    graphics.fillEllipse(x, y - 45 * squashY, 40 * squashX, 60 * squashY)
+    
+    // Core Body
+    graphics.fillStyle(color, 1)
+    graphics.fillEllipse(x, y - 40 * squashY, 24 * squashX, 50 * squashY) // Torso
+    graphics.fillEllipse(x, headY, 22 * squashX, 22 * squashY) // Head
+
+    // Expressive Eyes
+    graphics.fillStyle(0xffffff, 1)
+    const eyeOffsetX = facing * 6
+    let eyeH = 4 * squashY
+    
+    // Blink logic or expressions based on pose
+    if (player.pose === 'laugh' || player.pose === 'heavy_laugh') eyeH = 1
+    if (player.pose === 'cry') eyeH = 2
+
+    graphics.fillEllipse(x + eyeOffsetX - 5, headY - 2, 4, eyeH)
+    graphics.fillEllipse(x + eyeOffsetX + 5, headY - 2, 4, eyeH)
+
+    // Add targeted bloom to the graphics object (only once)
+    if (graphics.postFX && !graphics.hasBloom) {
+      graphics.postFX.addBloom(color, 1.5, 1, 1, 1.5)
+      graphics.hasBloom = true
+    }
+
+    // Trail particles when running fast
+    if (Math.abs(player.vx) > 0.8 && this.trailParticles) {
+      // Create a colored particle for the trail
+      this.trailParticles.setParticleTint(color)
+      this.trailParticles.emitParticleAt(x, y - 40 * squashY)
+    }
+  }
+
+  // =================================================
   // DRAW SPRITE CHARACTER
   // =================================================
 
@@ -1505,6 +1606,7 @@ const posY =
     this.player.vx *= friction
 
     this.player.x += this.player.vx * dt * 4
+    this.player.animTime += delta
 
     if (this.player.x < 40)               this.player.x = 40
     if (this.player.x > WORLD_WIDTH - 40) this.player.x = WORLD_WIDTH - 40
@@ -1512,6 +1614,10 @@ const posY =
     if (!isTyping && this.keys.jump.isDown && this.player.grounded) {
       this.player.vy = running ? -(this.jumpVelocity ?? 7) * 1.286 : -(this.jumpVelocity ?? 7)
       this.player.grounded = false
+      if (this.trailParticles) {
+        this.trailParticles.setParticleTint(0xffffff)
+        this.trailParticles.explode(10, this.player.x, this.groundY)
+      }
     }
 
     this.player.vy += 0.32 * dt
@@ -1522,6 +1628,10 @@ const posY =
         const impact = Phaser.Math.Clamp(Math.abs(this.player.vy) / 12, 0, 0.35)
         this.player.squashY = 1 - impact
         this.player.squashX = 1 + impact * 0.6
+        if (this.trailParticles) {
+          this.trailParticles.setParticleTint(0xcccccc)
+          this.trailParticles.explode(15, this.player.x, this.groundY)
+        }
       }
       this.player.y        = this.groundY
       this.player.vy       = 0
