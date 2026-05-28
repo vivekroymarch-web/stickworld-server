@@ -1420,7 +1420,7 @@ const posY =
 
     // Edge-scroll: move camera so player stays within [margin, screenW-margin]
     const screenW       = this.scale.width
-    const margin        = 0
+    const margin        = 100
     const playerScreenX = this.player.x - this.scrollX
 
     if (playerScreenX > screenW - margin) {
