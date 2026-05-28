@@ -1552,7 +1552,6 @@ const posY =
 
     this.scrollX = Phaser.Math.Clamp(this.scrollX, 0, WORLD_WIDTH - screenW)
     this.cameras.main.setScroll(this.scrollX, 0)
-    window._applyBg(this.scrollX)
 
     // =================================================
     // EMOJI POINTER UPDATE

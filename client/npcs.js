@@ -4,7 +4,7 @@
 // character rendering and AI state machines.
 // =================================================
 
-import { SIGN_MESSAGES } from './entities.js'
+
 
 class BaseNPC {
   constructor(scene, data) {
