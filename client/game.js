@@ -87,7 +87,9 @@ class MainScene extends Phaser.Scene {
 
   preload() {
     this.load.image('ufo', 'assets/ufo.png')
-
+    this.load.image('bg-sky', 'assets/env/sky.png')
+    this.load.image('bg-mountains', 'assets/env/mountains.png')
+    this.load.image('bg-midground', 'assets/env/midground.png')
     this.load.spritesheet(
       'stickman-idle-sheet',
       'assets/stickman/stickman_idle_sheet.png',
@@ -310,83 +312,13 @@ class MainScene extends Phaser.Scene {
     // BACKGROUND (PARALLAX + SKY)
     // =================================================
 
-    if (!this.textures.exists('skyGrad')) {
-      const w = DEFAULT_WORLD.width
-      const h = this.scale.height
+    const bgScale = this.scale.height / 1024
 
-      // SKY
-      const skyCanvas = this.textures.createCanvas('skyGrad', 1, h)
-      const skyCtx = skyCanvas.context
-      const skyGradient = skyCtx.createLinearGradient(0, 0, 0, h)
-      skyGradient.addColorStop(0, '#04040a')
-      skyGradient.addColorStop(0.4, '#0a0a1a')
-      skyGradient.addColorStop(1, '#25153a')
-      skyCtx.fillStyle = skyGradient
-      skyCtx.fillRect(0, 0, 1, h)
-      skyCanvas.refresh()
-
-      // LAYER 1 (Distant smooth hills)
-      const bg1Canvas = this.textures.createCanvas('bg1Grad', w + 2000, h)
-      const ctx1 = bg1Canvas.context
-      const grad1 = ctx1.createLinearGradient(0, this.groundY - 400, 0, this.groundY)
-      grad1.addColorStop(0, '#0b0b1a')
-      grad1.addColorStop(1, '#16162a')
-      ctx1.fillStyle = grad1
-      ctx1.beginPath()
-      ctx1.moveTo(0, this.groundY)
-      let x = 0
-      while (x < w + 2000) {
-        let cx1 = x + 100 + Math.random() * 100
-        let cy1 = this.groundY - 200 - Math.random() * 200
-        let cx2 = x + 200 + Math.random() * 100
-        let cy2 = this.groundY - 200 - Math.random() * 200
-        let endX = x + 300 + Math.random() * 150
-        let endY = this.groundY - 50 - Math.random() * 50
-        ctx1.bezierCurveTo(cx1, cy1, cx2, cy2, endX, endY)
-        x = endX
-      }
-      ctx1.lineTo(x, h)
-      ctx1.lineTo(0, h)
-      ctx1.fill()
-      bg1Canvas.refresh()
-
-      // LAYER 2 (Closer mountains)
-      const bg2Canvas = this.textures.createCanvas('bg2Grad', w + 2000, h)
-      const ctx2 = bg2Canvas.context
-      const grad2 = ctx2.createLinearGradient(0, this.groundY - 250, 0, this.groundY)
-      grad2.addColorStop(0, '#15152a')
-      grad2.addColorStop(1, '#22223b')
-      ctx2.fillStyle = grad2
-      ctx2.beginPath()
-      ctx2.moveTo(0, this.groundY)
-      x = 0
-      while (x < w + 2000) {
-        let cx1 = x + 50 + Math.random() * 50
-        let cy1 = this.groundY - 100 - Math.random() * 100
-        let cx2 = x + 150 + Math.random() * 50
-        let cy2 = this.groundY - 100 - Math.random() * 100
-        let endX = x + 200 + Math.random() * 100
-        let endY = this.groundY
-        ctx2.bezierCurveTo(cx1, cy1, cx2, cy2, endX, endY)
-        x = endX
-      }
-      ctx2.lineTo(x, h)
-      ctx2.lineTo(0, h)
-      ctx2.fill()
-      bg2Canvas.refresh()
-
-      // FOG OVERLAY
-      const fogCanvas = this.textures.createCanvas('fogGrad', 1, 200)
-      const fogCtx = fogCanvas.context
-      const fogGradient = fogCtx.createLinearGradient(0, 0, 0, 200)
-      fogGradient.addColorStop(0, 'rgba(34, 34, 59, 0)')
-      fogGradient.addColorStop(1, 'rgba(34, 34, 59, 1)')
-      fogCtx.fillStyle = fogGradient
-      fogCtx.fillRect(0, 0, 1, 200)
-      fogCanvas.refresh()
-    }
-
-    this.sky = this.add.image(0, 0, 'skyGrad').setOrigin(0).setScale(DEFAULT_WORLD.width, 1).setScrollFactor(0).setDepth(-11)
+    this.sky = this.add.tileSprite(0, 0, DEFAULT_WORLD.width / bgScale, 1024, 'bg-sky')
+      .setOrigin(0)
+      .setScale(bgScale)
+      .setScrollFactor(0.1)
+      .setDepth(-11)
 
     // Moon / glow
     this.moon = this.add.circle(DEFAULT_WORLD.width / 2, 200, 80, 0xddddff, 0.8)
@@ -399,8 +331,17 @@ class MainScene extends Phaser.Scene {
     }
 
     // Parallax layers (mountains/hills)
-    this.bgLayer1 = this.add.image(0, 0, 'bg1Grad').setOrigin(0).setScrollFactor(0.2).setDepth(-9)
-    this.bgLayer2 = this.add.image(0, 0, 'bg2Grad').setOrigin(0).setScrollFactor(0.5).setDepth(-8)
+    this.bgLayer1 = this.add.tileSprite(0, 0, DEFAULT_WORLD.width / bgScale, 1024, 'bg-mountains')
+      .setOrigin(0)
+      .setScale(bgScale)
+      .setScrollFactor(0.3)
+      .setDepth(-9)
+
+    this.bgLayer2 = this.add.tileSprite(0, 0, DEFAULT_WORLD.width / bgScale, 1024, 'bg-midground')
+      .setOrigin(0)
+      .setScale(bgScale)
+      .setScrollFactor(0.6)
+      .setDepth(-8)
 
     // Fog overlay sitting right on the ground
     this.fogOverlay = this.add.image(0, this.groundY - 200, 'fogGrad').setOrigin(0).setScale(DEFAULT_WORLD.width, 1).setScrollFactor(1).setDepth(-7.5)
